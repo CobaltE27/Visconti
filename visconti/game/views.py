@@ -34,9 +34,17 @@ def join_match(request):
         return HttpResponse("No match started!")
 
 def data(request):
-    players = models.Player.objects.all()
-    dataJson = {"players": json.loads(serializers.serialize("json", players))}
+    players = models.get_players()
+    host = models.get_host()
+    dataJson = {
+        "players": model_to_dict(players),
+        "host": model_to_dict(host),
+        }
     return HttpResponse(json.dumps(dataJson), content_type="application/json")
+
+def model_to_dict(queryResult):
+    return json.loads(serializers.serialize("json", queryResult))
+
 
 def set_name(request):
     if request.method == "POST":
