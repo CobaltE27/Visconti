@@ -21,7 +21,7 @@ class Good(str, Enum):
 class Host(models.Model):
     localIP = models.CharField(max_length=20)
     phase = models.CharField(max_length=20, default=Phase.joining, null=False) #joining, choosing, bidding, end
-    day = models.IntegerField(default=1, null=False, min=1, max=3)
+    day = models.IntegerField(default=1, null=False)
     group_lots = models.CharField(max_length=20, default="", null=False)
     deck = models.CharField(max_length=500, default="", null=False)
     chooser = models.CharField(max_length=100, default="")
@@ -29,14 +29,14 @@ class Host(models.Model):
 
 class Player(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    money = models.IntegerField(default=40, min=0)
+    money = models.IntegerField(default=40)
     lots = models.CharField(max_length=20, default="", null=False)
     current_bid = models.IntegerField()
-    grain = models.IntegerField(default=0, null=False, max=7, min=0)
-    cloth = models.IntegerField(default=0, null=False, max=7, min=0)
-    dye = models.IntegerField(default=0, null=False, max=7, min=0)
-    spice = models.IntegerField(default=0, null=False, max=7, min=0)
-    furs = models.IntegerField(default=0, null=False, max=7, min=0)
+    grain = models.IntegerField(default=0, null=False)
+    cloth = models.IntegerField(default=0, null=False)
+    dye = models.IntegerField(default=0, null=False)
+    spice = models.IntegerField(default=0, null=False)
+    furs = models.IntegerField(default=0, null=False)
 
 def get_shuffled_deck(playerCount: int):
     deck = []
@@ -122,29 +122,36 @@ def move_to_next_chooser():
     host.save()
 
 def score_day():
-    print("scoring")
-    players = get_players()
     #calculate costs
+    players = get_players()
     playerCosts = dict()
     for p in players:
         playerCosts[p.name] = cost_of_lots(p.lots)
     playerCosts = {k: v for k, v in sorted(playerCosts.items(), key=lambda item: item[1], reverse=True)} #sort dictionary by descending cost
-    rewards = [30, 20, 10]
+    rewards = []
+    if len(players) == 3: rewards = [30, 15]
+    elif len(players) == 4: rewards = [30, 20, 10]
+    elif len(players) == 5: rewards = [30, 20, 10, 5]
+    elif len(players) == 6: rewards = [30, 20, 15, 10, 5]
     currentRewardIndex = 0
     while (currentRewardIndex < len(rewards)):
-        highestPlayers = [playerCosts.keys[0]]
-        highestCost = [playerCosts.items[0]]
-        for key in playerCosts.keys[1:]:
+        highestPlayers = [list(playerCosts.keys())[0]]
+        highestCost = list(playerCosts.values())[0]
+        for key in list(playerCosts.keys())[1:]:
             if playerCosts[key] == highestCost:
-                highestPlayers.append(playerCosts[key])
+                highestPlayers.append(key)
             else:
                 break
         portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(highestPlayers), len(rewards))]) // len(highestPlayers)
         for pName in highestPlayers:
-            Player.objects.get(name=pName).money += portion
+            add_money(pName, portion)
+            # print("r:" + pName + str(portion))
         currentRewardIndex += len(highestPlayers)
+        for highest in highestPlayers:
+            del playerCosts[highest]
     #update pyramids
     goodsNames = {Good.grain, Good.cloth, Good.dye, Good.spice, Good.furs}
+    players = get_players()
     for p in players:
         p.grain = min(p.grain + p.lots.count("g"), 7)
         p.cloth = min(p.cloth + p.lots.count("c"), 7)
@@ -156,39 +163,45 @@ def score_day():
         #absolute pyramid points
         for good in goodsNames:
             p.money += cumulative_pyramid_score(getattr(p, good))
+            # print("pc:" + p.name + str(cumulative_pyramid_score(getattr(p, good))))
+        p.save()
     #relative pyramid points
     levelRewards = [10, 5]
-    currentRewardIndex = 0
     for good in goodsNames:
+        currentRewardIndex = 0
         for l in range(7,-1,-1):
-            levelPlayers = []
-            for p in players:
-                if getattr(p, good) == l:
-                    levelPlayers.append(p.name)
-            portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
-            for winner in levelPlayers:
-                Player.objects.get(name=winner).money += portion
-            currentRewardIndex += len(levelPlayers)
-            if currentRewardIndex >= len(levelRewards):
-                break
-    for p in players:
-        p.save()
+            if currentRewardIndex < len(levelRewards):
+                levelPlayers = []
+                for p in players:
+                    if getattr(p, good) == l:
+                        levelPlayers.append(p.name)
+                if len(levelPlayers) > 0:
+                    portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
+                    for winner in levelPlayers:
+                        add_money(winner, portion)
+                        # print("pr:" + winner + str(portion))
+                currentRewardIndex += len(levelPlayers)
+
+def add_money(name: str, amount: int):
+    p = Player.objects.get(name=name)
+    p.money += amount
+    p.save()
 
 def cumulative_pyramid_score(level: int) -> int:
     if level == 7: return 20
-    if level == 6: return 10
-    if level == 5: return 5
+    elif level == 6: return 10
+    elif level == 5: return 5
     return 0
 
 def cost_of_lots(lots: str) -> int:
     lotList = lots.split()
     sum = 0
     for lot in lotList:
-        sum += int(filter(str.isdigit, lot))
+        sum += int(re.sub(r"\D", "", lot))
     return sum
 
-def get_players() -> models.BaseManager[Player]:
-    return Player.objects.all().order_by(id)
+def get_players() -> models.Manager[Player]:
+    return Player.objects.all().order_by("id")
 
 def get_next_indexed_player(player: Player) -> Player:
     players = get_players()
