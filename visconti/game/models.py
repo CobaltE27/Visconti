@@ -2,12 +2,20 @@ from django.db import models
 import random
 from enum import Enum
 from django.db.models import F
+import re
 
 class Phase(str, Enum):
     joining = "joining"
     choosing = "choosing"
     bidding = "bidding"
     end = "end"
+
+class Good(str, Enum):
+    grain = "grain"
+    cloth = "cloth"
+    dye = "dye"
+    spice = "spice"
+    furs = "furs"
 
 # Create your models here.
 class Host(models.Model):
@@ -67,12 +75,14 @@ def can_draw(currentNumLots: int):
             return True
     return False
 
+#move group lots to selected player, is playerName is None: lot group is discarded
 def claim_lots(playerName: str):
-    player = Player.objects.get(name=playerName)
     host = Host.objects.all().first()
-    player.lots += " " + host.group_lots
+    if playerName:
+        player = Player.objects.get(name=playerName)
+        player.lots += " " + host.group_lots
+        player.save()
     host.group_lots = ""
-    player.save()
     host.save()
 
 def select_first_chooser():
@@ -103,6 +113,70 @@ def move_to_next_chooser():
     host = get_host()
     host.chooser = get_next_indexed_player(get_players.get(name=host.chooser)).name
     host.save()
+
+def score_day():
+    print("scoring")
+    players = get_players()
+    #calculate costs
+    playerCosts = dict()
+    for p in players:
+        playerCosts[p.name] = cost_of_lots(p.lots)
+    playerCosts = {k: v for k, v in sorted(playerCosts.items(), key=lambda item: item[1], reverse=True)} #sort dictionary by descending cost
+    rewards = [30, 20, 10]
+    currentRewardIndex = 0
+    while (currentRewardIndex < len(rewards)):
+        highestPlayers = [playerCosts.keys[0]]
+        highestCost = [playerCosts.items[0]]
+        for key in playerCosts.keys[1:]:
+            if playerCosts[key] == highestCost:
+                highestPlayers.append(playerCosts[key])
+            else:
+                break
+        portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(highestPlayers), len(rewards))]) // len(highestPlayers)
+        for pName in highestPlayers:
+            Player.objects.get(name=pName).money += portion
+        currentRewardIndex += len(highestPlayers)
+    #update pyramids
+    goodsNames = {Good.grain, Good.cloth, Good.dye, Good.spice, Good.furs}
+    for p in players:
+        p.grain = min(p.grain + p.lots.count("g"), 7)
+        p.cloth = min(p.cloth + p.lots.count("c"), 7)
+        p.dye = min(p.dye + p.lots.count("d"), 7)
+        p.spice = min(p.spice + p.lots.count("s"), 7)
+        p.furs = min(p.furs + p.lots.count("f"), 7)
+        #clear lots
+        p.lots = ""
+        #absolute pyramid points
+        for good in goodsNames:
+            p.money += cumulative_pyramid_score(getattr(p, good))
+    #relative pyramid points
+    levelRewards = [10, 5]
+    currentRewardIndex = 0
+    for good in goodsNames:
+        for l in range(7,-1,-1):
+            levelPlayers = []
+            for p in players:
+                if getattr(p, good) == l:
+                    levelPlayers.append(p.name)
+            portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
+            for winner in levelPlayers:
+                Player.objects.get(name=winner).money += portion
+            currentRewardIndex += len(levelPlayers)
+            if currentRewardIndex >= len(levelRewards):
+                break
+
+def cumulative_pyramid_score(level: int) -> int:
+    if level == 7: return 20
+    if level == 6: return 10
+    if level == 5: return 5
+    return 0
+
+def cost_of_lots(lots: str) -> int:
+    lotList = lots.split()
+    sum = 0
+    for lot in lotList:
+        sum += int(filter(str.isdigit, lot))
+    return sum
 
 def get_players() -> models.BaseManager[Player]:
     return Player.objects.all().order_by(id)
