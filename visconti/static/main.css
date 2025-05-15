@@ -1,0 +1,60 @@
+#main-divider {
+    display: flex;
+    flex-direction: row;
+}
+#left-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1rem;
+    width: 60%;
+}
+#players {
+    display: flex;
+    flex-direction: column;
+}
+
+.hide {
+    visibility: hidden;
+    /* opacity: 0; */
+}
+
+.lot {
+    display: flex;
+    width: 3rem;
+    height: 5rem;
+    font-weight: bold;
+}
+.lot-container {
+    display: flex;
+    flex-direction: row;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border: 4px solid gray;
+}
+
+.gold { background-color: gold; }
+.grain { background-color: #2b4a6b; color: white; }
+.fabric { background-color: #6b2b2b; color: white; }
+.dye { background-color: #2c6b2b; color: white; }
+.spice { background-color: #462b6b; color: white; }
+.furs { background-color: #6b492b; color: white; }
+
+#pyramids {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+#pyramids table {
+    width: 20%;
+    border-collapse: collapse;
+}
+#pyramids table tbody tr{
+    height: 1.4rem;
+    border-style: solid;
+    border-width: 1px;
+    border-color: gray;
+}
+#pyramids table tbody tr th {
+    width: 1.5rem;
+}

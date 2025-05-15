@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+{% load static %}
+<link href="{% static 'main.css' %}" rel="stylesheet">
+<title>Visconti</title>
+<script type="module" src="{% static 'main.js' %}"></script>
+<body>
+    <form>
+        <input type="hidden" value="{{hostIP}}" id="hostIP">
+        <input type="hidden" value="{{isHost}}" id="isHost">
+    </form>
+    <form> {% csrf_token %}
+        <input id="username" name="username" maxlength="100" required>
+        <button id="join">Join</button>
+    </form>
+    {% if isHost %}
+    <form>
+        <button id="start">Start Match</button>
+    </form>
+    <p>
+        Hosting match {{matchNum}}, others can play at http://{{hostIP}}:8000/{{matchNum}}/
+    </p>
+    {% else %}
+    <p>
+        Playing in match {{matchNum}}.
+    </p>
+    {% endif %}
+    <div id="main-divider">
+        <div id="left-side">
+            <div id="main-board">
+                Bids:
+                <div>
+
+                </div>
+                Lots:
+                <div class="lot-container">
+
+                </div>
+            </div>
+            <div id="pyramids">
+                <table class="fabric">
+                    <tbody>
+                        <tr><th>20</th> <td></td></tr>
+                        <tr><th>10</th> <td></td></tr>
+                        <tr><th>5</th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                    </tbody>
+                </table>
+                <table class="dye">
+                    <tbody>
+                        <tr><th>20</th> <td></td></tr>
+                        <tr><th>10</th> <td></td></tr>
+                        <tr><th>5</th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                    </tbody>
+                </table>
+                <table class="furs">
+                    <tbody>
+                        <tr><th>20</th> <td></td></tr>
+                        <tr><th>10</th> <td></td></tr>
+                        <tr><th>5</th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                    </tbody>
+                </table>
+                <table class="grain">
+                    <tbody>
+                        <tr><th>20</th> <td></td></tr>
+                        <tr><th>10</th> <td></td></tr>
+                        <tr><th>5</th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                    </tbody>
+                </table>
+                <table class="spice">
+                    <tbody>
+                        <tr><th>20</th> <td></td></tr>
+                        <tr><th>10</th> <td></td></tr>
+                        <tr><th>5</th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                        <tr><th></th> <td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="rules">
+                Scoring rules
+            </div>
+        </div>
+        <div id="players">
+            
+        </div>
+    </div>
+    <div class="hide">
+        <div id="prefab-lot" class="lot">
+            0
+        </div>
+        <div id="prefab-bidbox" class="bid-box">
+            <span class="player-name">name</span>:
+
+        </div>
+        <div id="prefab-player-box" class="player-box">
+            <span class="player-name"></span>: <span class="player-money"></span>
+            <div class="lot-container">
+
+            </div>
+        </div>
+    </div>
+</body>
