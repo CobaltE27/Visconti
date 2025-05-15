@@ -164,6 +164,8 @@ def score_day():
             currentRewardIndex += len(levelPlayers)
             if currentRewardIndex >= len(levelRewards):
                 break
+    for p in players:
+        p.save()
 
 def cumulative_pyramid_score(level: int) -> int:
     if level == 7: return 20
