@@ -20,23 +20,22 @@ def host_match(request):
         }
     return render(request, "gamescreen.html", context)
 
-def join_match(request, match_num):
-    localNetHost = models.Host.objects.filter(id=match_num)
+def join_match(request):
+    localNetHost = models.Host.objects.all()
     if localNetHost.exists():
         print(localNetHost.first().localIP)
 
         context = {
             "isHost": False, 
             "hostIP": localNetHost.first().localIP,
-            "matchNum": match_num,
         }
         return render(request, "gamescreen.html", context)
     else:
-        return HttpResponse("Bad match number! Make sure you entered the right url.")
+        return HttpResponse("No match started!")
 
 def data(request):
     players = models.Player.objects.all()
-    dataJson = {"players": serializers.serialize("json", players)}
+    dataJson = {"players": json.loads(serializers.serialize("json", players))}
     return HttpResponse(json.dumps(dataJson), content_type="application/json")
 
 def set_name(request):

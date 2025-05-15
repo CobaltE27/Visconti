@@ -14,15 +14,15 @@
         <button id="join">Join</button>
     </form>
     {% if isHost %}
-    <form>
-        <button id="start">Start Match</button>
+    <form> {% csrf_token %}
+        <button id="start" disabled>Start Match</button>
     </form>
     <p>
-        Hosting match {{matchNum}}, others can play at http://{{hostIP}}:8000/{{matchNum}}/
+        Hosting match, others can play at http://{{hostIP}}:8000/join/
     </p>
     {% else %}
     <p>
-        Playing in match {{matchNum}}.
+        Playing in match.
     </p>
     {% endif %}
     <div id="main-divider">

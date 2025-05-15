@@ -21,7 +21,7 @@ from game import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.host_match),
-    path('<int:match_num>/', views.join_match),
+    path('join/', views.join_match),
     path('data/', views.data),
     path('setname/', views.set_name),
 ]

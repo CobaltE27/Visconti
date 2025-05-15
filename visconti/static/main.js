@@ -7,6 +7,8 @@ let username = undefined;
 
 if (isHost == "True"){
     hostIP = "127.0.0.1"
+    let startButton = document.querySelector("#start");
+    startButton.addEventListener("click", start);
     setTimeout(refreshData, 5000);
 }
 else{
@@ -20,12 +22,24 @@ async function refreshData(){
         throw new Error(response.status);
     }
     const data = await response.json();
-    console.log(data)
+
+    console.log(data);
+    let startButton = document.querySelector("#start");
+    if (startButton != null) {
+        console.log("in");
+        if (data.players.length >= 3){
+            console.log("innest");
+            startButton.removeAttribute("disabled");
+        }
+        else
+            startButton.setAttribute("disabled", true);
+    }
+
     setTimeout(refreshData, 5000);
 }
 
 async function join(event){
-    event.preventDefault()
+    event.preventDefault();
     let nameInput = document.querySelector("#username");
     nameInput.setAttribute("disabled", true);
     joinButton.setAttribute("disabled", true);
@@ -39,4 +53,8 @@ async function join(event){
         headers: {'X-CSRFToken': csrfToken},
     });
     username = document.querySelector("#username").value;
+}
+
+async function start(event){
+    event.preventDefault();
 }
