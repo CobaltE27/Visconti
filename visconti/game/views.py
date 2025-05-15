@@ -45,6 +45,10 @@ def set_name(request):
         newPlayer.save()
         return HttpResponse()
 
+def start_match(request):
+    if request.method == "POST":
+        print("start")#start the game
+
 def delete_data():
     query = models.Host.objects.all()
     if query.exists():

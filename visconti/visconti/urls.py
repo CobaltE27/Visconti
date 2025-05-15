@@ -24,4 +24,5 @@ urlpatterns = [
     path('join/', views.join_match),
     path('data/', views.data),
     path('setname/', views.set_name),
+    path('start/', views.start_match),
 ]

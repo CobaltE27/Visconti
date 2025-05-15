@@ -1,9 +1,10 @@
-let isHost = document.querySelector("#isHost").value;
-let hostIP = document.querySelector("#hostIP").value;
-let joinButton = document.querySelector("#join");
+var isHost = document.querySelector("#isHost").value;
+var hostIP = document.querySelector("#hostIP").value;
+var joinButton = document.querySelector("#join");
 joinButton.addEventListener("click", join);
-let playerDiv = document.querySelector("#players");
-let username = undefined;
+var playersArea = document.querySelector("#players");
+var username = undefined;
+var playerBoxPrefab = document.querySelector("#prefab-player-box");
 
 if (isHost == "True"){
     hostIP = "127.0.0.1"
@@ -24,18 +25,32 @@ async function refreshData(){
     const data = await response.json();
 
     console.log(data);
+    updateStartButton(data);
+    displayPlayers(data);
+
+    setTimeout(refreshData, 5000);
+}
+
+function updateStartButton(data){
     let startButton = document.querySelector("#start");
     if (startButton != null) {
-        console.log("in");
         if (data.players.length >= 3){
-            console.log("innest");
             startButton.removeAttribute("disabled");
         }
         else
             startButton.setAttribute("disabled", true);
     }
+}
 
-    setTimeout(refreshData, 5000);
+function displayPlayers(data){
+    let newChildren = [];
+    for (let pData of data.players){
+        let newPlayerBox = instantiate(playerBoxPrefab);
+        newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
+        newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
+        newChildren.push(newPlayerBox);
+    }
+    playersArea.replaceChildren(...newChildren);
 }
 
 async function join(event){
@@ -57,4 +72,12 @@ async function join(event){
 
 async function start(event){
     event.preventDefault();
+
+}
+
+function instantiate(element){
+    let instance = element.cloneNode(true);
+    instance.classList.remove("hide");
+    instance.removeAttribute("id");
+    return instance;
 }
