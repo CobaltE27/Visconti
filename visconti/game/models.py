@@ -17,6 +17,7 @@ class Good(str, Enum):
     spice = "spice"
     furs = "furs"
 
+# for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
 class Host(models.Model):
     localIP = models.CharField(max_length=20)

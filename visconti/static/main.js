@@ -34,7 +34,7 @@ async function refreshData(){
 function updateStartButton(data){
     let startButton = document.querySelector("#start");
     if (startButton != null) {
-        if (data.players.length >= 3){
+        if (data.players.length >= 3 && data.players.length <= 6){
             startButton.removeAttribute("disabled");
         }
         else

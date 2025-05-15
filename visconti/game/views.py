@@ -35,7 +35,7 @@ def join_match(request):
 
 def data(request):
     players = models.get_players()
-    host = models.get_host()
+    host = models.Host.objects.all()
     dataJson = {
         "players": model_to_dict(players),
         "host": model_to_dict(host),
@@ -56,6 +56,9 @@ def set_name(request):
 def start_match(request):
     if request.method == "POST":
         print("start")#start the game
+        pCount = len(models.get_players())
+        if pCount >= 3 and pCount <= 6:
+            models.start_day()
 
 def delete_data():
     query = models.Host.objects.all()

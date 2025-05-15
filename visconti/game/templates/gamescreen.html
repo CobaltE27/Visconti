@@ -10,7 +10,7 @@
         <input type="hidden" value="{{isHost}}" id="isHost">
     </form>
     <form> {% csrf_token %}
-        <input id="username" name="username" maxlength="100" required>
+        <label>Username:<input id="username" name="username" maxlength="100" required></label>
         <button id="join">Join</button>
     </form>
     {% if isHost %}
@@ -28,8 +28,9 @@
     <div id="main-divider">
         <div id="left-side">
             <div id="main-board">
+                <h2 id="dayCounter">Day: </h2>
                 Bids:
-                <div>
+                <div id="bid-boxes">
 
                 </div>
                 Lots:
@@ -111,10 +112,18 @@
         <div id="prefab-lot" class="lot">
             0
         </div>
-        <div id="prefab-bidbox" class="bid-box">
+        <div id="prefab-bid-box" class="bid-box">
             <span class="player-name">name</span>:
 
         </div>
+        <div id="prefab-bid-form" class="bid-form">
+            <form> {% csrf_token %}
+                <label>Bid:<input class="bid-input" type="number" min="1" required></label>
+                <button class="bid-button">Place Bid</button>
+                <button class="pass-button">Pass</button>
+            </form>
+        </div>
+        <span id="prefab-bid-display" class="bid-display"></span>
         <div id="prefab-player-box" class="player-box">
             <span class="player-name"></span>: <span class="player-money"></span>
             <div class="lot-container"></div>

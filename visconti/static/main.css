@@ -60,3 +60,18 @@
 #pyramids table tbody tr th {
     width: 1.5rem;
 }
+
+#main-board {
+    display: flex;
+    flex-direction: column;
+}
+#bid-boxes {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+.bid-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
