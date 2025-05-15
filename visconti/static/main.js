@@ -72,7 +72,12 @@ async function join(event){
 
 async function start(event){
     event.preventDefault();
-
+    let url = "http://" + hostIP + ":8000/start/";
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {'X-CSRFToken': csrfToken},
+    });
 }
 
 function instantiate(element){
