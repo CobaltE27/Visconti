@@ -56,14 +56,21 @@ def get_shuffled_deck(playerCount: int):
 def count_lots(lots: str):
     return len(lots.split())
 
-def draw_lot():
-    host = Host.objects.all().first()
+#returns drawn lot
+def draw_lot() -> str:
+    host = get_host()
     currentNumLots = count_lots(host.group_lots)
     if can_draw(currentNumLots):
         lotsList = host.deck.split()
-        host.group_lots += " " + lotsList.pop(0)
+        draw = lotsList.pop(0)
         host.deck = " ".join(lotsList)
         host.save()
+        return draw
+
+def add_to_group(lot: str):
+    host = get_host()
+    host.group_lots += " " + lot
+    host.save()
 
 def can_draw(currentNumLots: int):
     if currentNumLots >= 3:
