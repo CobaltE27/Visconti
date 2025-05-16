@@ -5,23 +5,23 @@ from django.db.models import F
 import re
 
 class Phase(str, Enum):
-    joining = "joining"
-    choosing = "choosing"
-    bidding = "bidding"
-    end = "end"
+    JOINING = "joining"
+    CHOOSING = "choosing"
+    BIDDING = "bidding"
+    END = "end"
 
 class Good(str, Enum):
-    grain = "grain"
-    cloth = "cloth"
-    dye = "dye"
-    spice = "spice"
-    furs = "furs"
+    GRAIN = "grain"
+    CLOTH = "cloth"
+    DYE = "dye"
+    SPICE = "spice"
+    FURS = "furs"
 
 # for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
 class Host(models.Model):
     localIP = models.CharField(max_length=20)
-    phase = models.CharField(max_length=20, default=Phase.joining, null=False) #joining, choosing, bidding, end
+    phase = models.CharField(max_length=20, default=Phase.JOINING, null=False) #joining, choosing, bidding, end
     day = models.IntegerField(default=1, null=False)
     group_lots = models.CharField(max_length=20, default="", null=False)
     deck = models.CharField(max_length=500, default="", null=False)
@@ -108,7 +108,7 @@ def start_day():
     host.chooser = select_first_chooser()
     host.deck = get_shuffled_deck(len(players))
     host.group_lots = ""
-    host.phase = Phase.choosing
+    host.phase = Phase.CHOOSING
     host.bidder = get_next_indexed_player(get_players().get(name=host.chooser)).name
     host.save()
 
@@ -151,7 +151,7 @@ def score_day():
         for highest in highestPlayers:
             del playerCosts[highest]
     #update pyramids
-    goodsNames = {Good.grain, Good.cloth, Good.dye, Good.spice, Good.furs}
+    goodsNames = {Good.GRAIN, Good.CLOTH, Good.DYE, Good.SPICE, Good.FURS}
     players = get_players()
     for p in players:
         p.grain = min(p.grain + p.lots.count("g"), 7)

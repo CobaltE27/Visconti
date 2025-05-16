@@ -28,12 +28,27 @@
     <div id="main-divider">
         <div id="left-side">
             <div id="main-board">
-                <h2 id="dayCounter">Day: </h2>
-                Bids:
-                <div id="bid-boxes">
+                <h1>Day: <span id="day-counter"></span> Phase: <span id="phase-display"></span></h1>
 
+                <div id="bid-view" class="hide">
+                    <h2>Bids:<h2>
+                    <div id="bid-boxes">
+
+                    </div>
                 </div>
-                Lots:
+                <div id="choose-display" class="hide">
+                    <span class="player-name"></span> is choosing lots.
+                </div>
+                <div id="choose-form" class="hide">
+                    Choose lots to bid on
+                    <form>
+                        <button id="draw">Draw Lot</button>
+                        <button id="start-bid">Start Bidding</button>
+                    </form>
+                </div>
+                
+                <h2>Lots in deck: <span id="lot-counter"></span></h2>
+                <h2>Lots in group:</h2>
                 <div class="lot-container">
 
                 </div>
@@ -112,10 +127,11 @@
         <div id="prefab-lot" class="lot">
             0
         </div>
-        <div id="prefab-bid-box" class="bid-box">
-            <span class="player-name">name</span>:
 
+        <div id="prefab-bid-box" class="bid-box">
+            <span class="player-name"></span>: <span class="bid"></span>
         </div>
+
         <div id="prefab-bid-form" class="bid-form">
             <form> {% csrf_token %}
                 <label>Bid:<input class="bid-input" type="number" min="1" required></label>
@@ -123,7 +139,7 @@
                 <button class="pass-button">Pass</button>
             </form>
         </div>
-        <span id="prefab-bid-display" class="bid-display"></span>
+
         <div id="prefab-player-box" class="player-box">
             <span class="player-name"></span>: <span class="player-money"></span>
             <div class="lot-container"></div>
