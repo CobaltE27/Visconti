@@ -49,8 +49,8 @@ def model_to_dict(queryResult):
 def set_name(request):
     if request.method == "POST":
         newName = request.POST["name"]
-        # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s4 f5")
-        newPlayer = models.Player.objects.create(name=newName, current_bid=0)
+        newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s4 f5")
+        # newPlayer = models.Player.objects.create(name=newName, current_bid=0)
         newPlayer.save()
         return HttpResponse()
 

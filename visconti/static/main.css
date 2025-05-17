@@ -32,12 +32,17 @@ h2, #main-board h1 {
     display: none;
 }
 
-.gold { background-color: gold; }
-.grain { background-color: #2b4a6b; color: white; }
-.cloth { background-color: #6b2b2b; color: white; }
-.dye { background-color: #2c6b2b; color: white; }
-.spice { background-color: #462b6b; color: white; }
-.furs { background-color: #6b492b; color: white; }
+.gold { background-color: gold; border: 0.4rem solid rgb(255, 166, 0) }
+.grain { background-color: #234ba1;  border-color: #d1e0ff;}
+.cloth { background-color: #a31a1a; border-color: #ffe030;}
+.dye { background-color: #0a5207; border-color: #ffe77f;}
+.spice { background-color: #4d1f3f; border-color: #d2c2ff;}
+.furs { background-color: #663c29; border-color: #bfcfdd;}
+.grain, .cloth, .dye, .spice, .furs {
+    color: white;
+    border-radius: 0.2rem;
+    border-style: solid;
+}
 .lot {
     display: flex;
     width: 3rem;
@@ -67,13 +72,16 @@ h2, #main-board h1 {
     height: 1.4rem;
     border-style: solid;
     border-width: 1px;
-    border-color: gray;
 }
 #pyramids table tbody tr th {
     width: 1.5rem;
+    border-style: solid;
+    border-width: 1px;
 }
 #pyramids table tbody tr td {
     text-align: center;
+    border-style: solid;
+    border-width: 1px;
 }
 
 #main-board {
