@@ -81,7 +81,7 @@ def receive_bid(request):
         bid = int(request.POST["bid"])
         player = models.get_players().get(name=name)
         host = models.get_host()
-        if host.bidder == name: #TODO check bid is highest
+        if host.bidder == name and bid > models.highest_bid() and bid <= player.money:
             player.current_bid = bid
             player.save()
         

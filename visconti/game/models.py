@@ -282,6 +282,9 @@ def cumulative_pyramid_score(level: int) -> int:
     elif level == 5: return 5
     return 0
 
+def highest_bid() -> int:
+    return Player.objects.all().order_by("-current_bid").first().current_bid
+
 def cost_of_lots(lots: str) -> int:
     lotList = lots.split()
     sum = 0
