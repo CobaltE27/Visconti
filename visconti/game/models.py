@@ -233,6 +233,9 @@ def end_bidding_phase():
         host.save()
         move_to_next_chooser()
 
+def end_choosing_phase():
+    print() #TODO
+
 def add_money(name: str, amount: int):
     p = Player.objects.get(name=name)
     p.money += amount
