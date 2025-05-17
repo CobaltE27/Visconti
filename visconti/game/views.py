@@ -68,7 +68,7 @@ def receive_choice(request):
         host = models.get_host()
         if host.chooser == name:
             if drawOrBid and models.can_draw(): #draw
-                host.group_lots += " " + models.draw_lot()
+                models.add_to_group(models.draw_lot())
                 host.save()
             else: #move to bidding
                 models.end_choosing_phase()

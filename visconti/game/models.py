@@ -94,6 +94,7 @@ def claim_lots(playerName: str):
     host.group_lots = ""
     host.save()
 
+#sets host.chooser
 def select_first_chooser():
     host = Host.objects.all().first()
     players = Player.objects.all().order_by("money")
@@ -105,9 +106,9 @@ def select_first_chooser():
     host.save()
 
 def start_day():
+    select_first_chooser()
     host = get_host()
     players = get_players()
-    host.chooser = select_first_chooser()
     host.deck = get_shuffled_deck(len(players))
     host.group_lots = ""
     host.phase = Phase.CHOOSING
@@ -213,13 +214,15 @@ def end_bidding_phase():
             maxedCount += 1
         else: 
             leftoverPlayer = p
-    host = get_host()
-    if (maxedCount >= len(players) - 1 or count_lots(host.deck) == 0): #all players but one maxed or deck empty, fill leftover and end bidding
-        while count_lots(p.lots) < 5 and count_lots(host.deck) > 0:
+    
+    if (maxedCount >= len(players) - 1 or count_lots(get_host().deck) == 0): #all players but one maxed or deck empty, fill leftover and end bidding
+        while count_lots(leftoverPlayer.lots) < 5 and count_lots(get_host().deck) > 0:
             leftoverPlayer.lots += " " + draw_lot()
+        leftoverPlayer.save()
 
         score_day()
 
+        host = get_host()
         host.bidder = ""
         if (host.day == 3):
             host.phase = Phase.END
@@ -229,6 +232,7 @@ def end_bidding_phase():
             host.save()
             start_day()
     else: #more space to fill, go to next chooser for the day
+        host = get_host()
         host.phase = Phase.CHOOSING
         host.save()
         move_to_next_chooser()
