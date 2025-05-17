@@ -121,16 +121,16 @@ def start_day():
 def move_to_next_bidder():
     host = get_host()
     while True:
-        host.bidder = get_next_indexed_player(get_players.get(name=host.bidder)).name
-        bidderLotCount = count_lots(get_players.get(name=host.bidder).lots)
+        host.bidder = get_next_indexed_player(get_players().get(name=host.bidder)).name
+        bidderLotCount = count_lots(get_players().get(name=host.bidder).lots)
         if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount: break
     host.save()
 
 def move_to_next_chooser():
     host = get_host()
     while True:
-        host.chooser = get_next_indexed_player(get_players.get(name=host.chooser)).name
-        if count_lots(get_players.get(name=host.chooser).lots) < 5: break
+        host.chooser = get_next_indexed_player(get_players().get(name=host.chooser)).name
+        if count_lots(get_players().get(name=host.chooser).lots) < 5: break
     host.save()
 
 #tallies scores for players, empties all players' lots

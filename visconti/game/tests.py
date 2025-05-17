@@ -1,11 +1,11 @@
 from django.test import TestCase
 from . import models
 
-goods = [models.Good.grain, models.Good.cloth, models.Good.dye, models.Good.spice, models.Good.furs]
+goods = [models.Good.GRAIN, models.Good.CLOTH, models.Good.DYE, models.Good.SPICE, models.Good.FURS]
 # Create your tests here.
 class AllCostTestCase(TestCase):
     def setUp(self):
-        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.bidding, day=1, group_lots="", deck="", chooser="", bidder="")
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.BIDDING, day=1, group_lots="", deck="", chooser="", bidder="")
         models.Player.objects.create(name="first", money=0, lots="10x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
         models.Player.objects.create(name="second", money=0, lots="5x 3x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
         models.Player.objects.create(name="third", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
@@ -13,9 +13,9 @@ class AllCostTestCase(TestCase):
 
     def test_scoring(self):
         models.score_day()
-        print("")
-        for p in models.get_players():
-            print(p.name + str(p.money))
+        # print("")
+        # for p in models.get_players():
+        #     print(p.name + str(p.money))
         first = models.Player.objects.get(name="first")
         second = models.Player.objects.get(name="second")
         third = models.Player.objects.get(name="third")
@@ -37,7 +37,7 @@ class AllCostTestCase(TestCase):
 
 class AllCostTiesTestCase(TestCase):
     def setUp(self):
-        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.bidding, day=1, group_lots=0, deck="", chooser="", bidder="")
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.BIDDING, day=1, group_lots="", deck="", chooser="", bidder="")
         models.Player.objects.create(name="first", money=0, lots="10x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
         models.Player.objects.create(name="second", money=0, lots="5x 5x 5x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
         models.Player.objects.create(name="third", money=0, lots="7x 3x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
@@ -47,9 +47,9 @@ class AllCostTiesTestCase(TestCase):
         first = models.Player.objects.get(name="first")
         second = models.Player.objects.get(name="second")
         third = models.Player.objects.get(name="third")
-        print("")
-        for p in models.get_players():
-            print(p.name + str(p.money))
+        # print("")
+        # for p in models.get_players():
+        #     print(p.name + str(p.money))
 
         self.assertEqual(first.lots, "")
         self.assertEqual(second.lots, "")
@@ -62,6 +62,28 @@ class AllCostTiesTestCase(TestCase):
         self.assertEqual(second.money, 30 + (5 * 5))
         self.assertEqual(third.money, 7 + (5 * 5))
 
+class PyramidTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.BIDDING, day=1, group_lots="", deck="", chooser="", bidder="")
+        models.Player.objects.create(name="first", money=0, lots="30g", current_bid=0, grain=7, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="10g 10f 5f", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1d 1d", current_bid=0, grain=0, cloth=0, dye=3, spice=0, furs=0)
+
+    def test_scoring(self):
+        models.score_day()
+        first = models.Player.objects.get(name="first")
+        second = models.Player.objects.get(name="second")
+        third = models.Player.objects.get(name="third")
+
+        self.assertEqual(first.grain, 7)
+        self.assertEqual(second.grain, 1)
+        self.assertEqual(second.furs, 2)
+        self.assertEqual(third.dye, 5)
+
+        self.assertEqual(first.money, 30 + (5 + 2 + 2 + (20 + 10) + 5))
+        self.assertEqual(second.money, 15 + (5 + 2 + 10 + 5 + 5))
+        self.assertEqual(third.money, 0 + (5 + (5 + 10) + 2 + 0 + 5))
+
 class CostOfLotsTestCase(TestCase):
     def setUp(self):
         self.tenSingle = "10x"
@@ -72,3 +94,27 @@ class CostOfLotsTestCase(TestCase):
         self.assertEqual(models.cost_of_lots(self.tenSingle), 10)
         self.assertEqual(models.cost_of_lots(self.tenMult), 10)
         self.assertEqual(models.cost_of_lots(self.fiveMult), 5)
+
+class MoveToNextBidderTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.BIDDING, day=1, group_lots="1x 1x 1x", deck="", chooser="first", bidder="second")
+        models.Player.objects.create(name="first", money=0, lots="1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+
+    def test_cost_of_lots(self):
+        models.move_to_next_bidder()
+        host = models.get_host()
+        self.assertEqual(host.bidder, "first")
+
+class MoveToNextChooserTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.BIDDING, day=1, group_lots="", deck="", chooser="second", bidder="second")
+        models.Player.objects.create(name="first", money=0, lots="1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1x 1x 1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+
+    def test_cost_of_lots(self):
+        models.move_to_next_chooser()
+        host = models.get_host()
+        self.assertEqual(host.chooser, "first")
