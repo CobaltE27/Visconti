@@ -258,6 +258,7 @@ async function choose(event, drawOrBid){
     let url = "http://" + hostIP + ":8000/choose/";
     let submitData = new FormData();
     submitData.append("drawOrBid", drawOrBid);
+    submitData.append("username", username);
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const response = await fetch(url, {
         method: "POST",
@@ -276,6 +277,7 @@ async function submitBid(event, passed){
     let url = "http://" + hostIP + ":8000/bid/";
     let submitData = new FormData();
     submitData.append("bid", bid);
+    submitData.append("username", username);
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const response = await fetch(url, {
         method: "POST",

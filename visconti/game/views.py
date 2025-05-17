@@ -61,6 +61,28 @@ def start_match(request):
         if pCount >= 3 and pCount <= 6:
             models.start_day()
 
+def receive_choice(request):
+    if request.method == "POST":
+        name = request.POST["username"]
+        drawOrBid = bool(request.POST["drawOrBid"])
+    return HttpResponse()
+
+def receive_bid(request):
+    if request.method == "POST":
+        name = request.POST["username"]
+        bid = int(request.POST["bid"])
+        player = models.get_players().get(name=name)
+        host = models.get_host()
+        if host.bidder == name:
+            player.current_bid = bid
+            player.save()
+        
+        if (host.chooser == name): # chooser made last bid
+            models.end_bidding_phase()
+        else:
+            models.move_to_next_bidder()
+    return HttpResponse()
+
 def delete_data():
     query = models.Host.objects.all()
     if query.exists():

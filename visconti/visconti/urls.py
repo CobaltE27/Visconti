@@ -25,4 +25,6 @@ urlpatterns = [
     path('data/', views.data),
     path('setname/', views.set_name),
     path('start/', views.start_match),
+    path('choose/', views.receive_choice),
+    path('bid/', views.receive_bid),
 ]

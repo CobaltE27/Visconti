@@ -89,6 +89,7 @@ def claim_lots(playerName: str):
     if playerName:
         player = Player.objects.get(name=playerName)
         player.lots += " " + host.group_lots
+        player.money -= player.current_bid
         player.save()
     host.group_lots = ""
     host.save()
@@ -100,7 +101,8 @@ def select_first_chooser():
         player = random.choice(players)
     else:
         player = players.first()
-    return player.name
+    host.chooser = player.name
+    host.save()
 
 def start_day():
     host = get_host()
@@ -111,17 +113,27 @@ def start_day():
     host.phase = Phase.CHOOSING
     host.bidder = get_next_indexed_player(get_players().get(name=host.chooser)).name
     host.save()
+    for p in get_players():
+        p.lots = ""
+        p.current_bid = 0
+        p.save()
 
 def move_to_next_bidder():
     host = get_host()
-    host.bidder = get_next_indexed_player(get_players.get(name=host.bidder)).name
+    while True:
+        host.bidder = get_next_indexed_player(get_players.get(name=host.bidder)).name
+        bidderLotCount = count_lots(get_players.get(name=host.bidder).lots)
+        if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount: break
     host.save()
 
 def move_to_next_chooser():
     host = get_host()
-    host.chooser = get_next_indexed_player(get_players.get(name=host.chooser)).name
+    while True:
+        host.chooser = get_next_indexed_player(get_players.get(name=host.chooser)).name
+        if count_lots(get_players.get(name=host.chooser).lots) < 5: break
     host.save()
 
+#tallies scores for players, empties all players' lots
 def score_day():
     #calculate costs
     players = get_players()
@@ -183,6 +195,44 @@ def score_day():
                         # print("pr:" + winner + str(portion))
                 currentRewardIndex += len(levelPlayers)
 
+def end_bidding_phase():
+    players = get_players()
+    highestBid = 0
+    highestPlayerName = None
+    for p in players:
+        if p.current_bid > highestBid:
+            highestBid = p.current_bid
+            highestPlayerName = p.name
+    claim_lots(highestPlayerName)
+
+    players = get_players()
+    maxedCount = 0
+    leftoverPlayer = None
+    for p in players:
+        if count_lots(p.lots) == 5: 
+            maxedCount += 1
+        else: 
+            leftoverPlayer = p
+    host = get_host()
+    if (maxedCount >= len(players) - 1 or count_lots(host.deck) == 0): #all players but one maxed or deck empty, fill leftover and end bidding
+        while count_lots(p.lots) < 5 and count_lots(host.deck) > 0:
+            leftoverPlayer.lots += " " + draw_lot()
+
+        score_day()
+
+        host.bidder = ""
+        if (host.day == 3):
+            host.phase = Phase.END
+            host.save()
+        else:
+            host.day += 1
+            host.save()
+            start_day()
+    else: #more space to fill, go to next chooser for the day
+        host.phase = Phase.CHOOSING
+        host.save()
+        move_to_next_chooser()
+
 def add_money(name: str, amount: int):
     p = Player.objects.get(name=name)
     p.money += amount
@@ -212,7 +262,7 @@ def get_next_indexed_player(player: Player) -> Player:
             return p
         if p.id == player.id:
             next = True
-    return players.first() #if the loop is over and no player was returned, the current player is last by id so we srap around
+    return players.first() #if the loop is over and no player was returned, the current player is last by id so we wrap around
 
 def get_host() -> Host:
     return Host.objects.all().first()
