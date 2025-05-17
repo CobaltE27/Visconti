@@ -38,6 +38,7 @@ var day = 1;
 var dayCounter = document.querySelector("#day-counter");
 var phaseDisplay = document.querySelector("#phase-display");
 var deckCounter = document.querySelector("#deck-counter");
+var winnerDisplay = document.querySelector("#winner");
 
 var pyramidsArea = document.querySelector("#pyramids");
 
@@ -119,10 +120,35 @@ function updatePyramids(data){
 function updateMainBoardContent(data){
     switch (phase) {
         case Phase.JOINING:
+            bidView.classList.add("hide");
+            chooseDisplay.classList.add("hide");
+            chooseForm.classList.add("hide");
+            break;
         case Phase.END:
             bidView.classList.add("hide");
             chooseDisplay.classList.add("hide");
             chooseForm.classList.add("hide");
+            let winnerList = [];
+            let highestMoney = 0;
+            for (let pData of data.players)
+                if (pData.fields.money >= highestMoney){
+                    if (pData.fields.money > highestMoney)
+                        winnerList = [];
+                    winnerList.push(pData.fields.name);
+                    highestMoney = pData.fields.money;
+                }
+            if (winnerList.length == 1)
+                winnerDisplay.textContent = winnerList[0] + " wins!";
+            else {
+                for (let i = 0; i < winnerList.length; i++){
+                    if (i == winnerList.length - 1)
+                        winnerDisplay.textContent += "and " + winnerList[i];
+                    else
+                        winnerDisplay.textContent += winnerList[i] + ", ";
+                    winnerDisplay.textContent += " tied!";
+                }
+            }
+            winnerDisplay.classList.remove("hide");
             break;
         case Phase.CHOOSING: {
             const chooser = data.host[0].fields.chooser
