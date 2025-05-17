@@ -321,6 +321,9 @@ function instantiate(element){
 
 function makeLotsFromString(lots){
     let lotElements = [];
+    if (lots == "")
+        return lotElements;
+    
     let lotStrings = lots.split(" ");
     for (let lotString of lotStrings){
         let lotElement = instantiate(lotPrefab);

@@ -85,10 +85,10 @@ def receive_bid(request):
             player.current_bid = bid
             player.save()
         
-        if (host.chooser == name): # chooser made last bid
-            models.end_bidding_phase()
-        else:
-            models.move_to_next_bidder()
+            if (host.chooser == name): # chooser made last bid
+                models.end_bidding_phase()
+            else:
+                models.move_to_next_bidder()
     return HttpResponse()
 
 def delete_data():

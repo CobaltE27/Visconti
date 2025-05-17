@@ -112,11 +112,9 @@ def start_day():
     host.deck = get_shuffled_deck(len(players))
     host.group_lots = ""
     host.phase = Phase.CHOOSING
-    host.bidder = get_next_indexed_player(get_players().get(name=host.chooser)).name
     host.save()
     for p in get_players():
         p.lots = ""
-        p.current_bid = 0
         p.save()
 
 def move_to_next_bidder():
@@ -238,7 +236,15 @@ def end_bidding_phase():
         move_to_next_chooser()
 
 def end_choosing_phase():
-    print() #TODO
+    host = get_host()
+    host.phase = Phase.BIDDING
+    #bidding setup
+    host.bidder = get_next_indexed_player(get_players().get(name=host.chooser)).name
+    host.save()
+    for p in get_players():
+        p.current_bid = 0
+        p.save()
+    
 
 def add_money(name: str, amount: int):
     p = Player.objects.get(name=name)
