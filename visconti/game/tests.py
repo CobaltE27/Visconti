@@ -215,3 +215,23 @@ class ReceiveChoiceEndChoosingTestCase(TestCase):
         self.assertEqual(host.group_lots, "1x 1x 1x")
         self.assertEqual(host.chooser, "second")
         self.assertEqual(host.bidder, "first")
+
+class RemainingBiddersTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.CHOOSING, day=1, group_lots="1x 1x 1x", deck="10x", chooser="first", bidder="second")
+        models.Player.objects.create(name="first", money=0, lots="", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+
+    def test_remaining_bidder(self):
+        self.assertTrue(models.is_remaining_bidder())
+
+class NoRemainingBiddersTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.CHOOSING, day=1, group_lots="1x 1x 1x", deck="10x", chooser="first", bidder="second")
+        models.Player.objects.create(name="first", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+
+    def test_no_remaining_bidder(self):
+        self.assertFalse(models.is_remaining_bidder())

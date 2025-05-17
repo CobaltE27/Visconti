@@ -90,3 +90,8 @@ h2, #main-board h1 {
     flex-direction: column;
     gap: 0.5rem;
 }
+.bid-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}

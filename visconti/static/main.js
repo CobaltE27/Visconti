@@ -77,7 +77,7 @@ async function refreshData(){
 function updateStartButton(data){
     let startButton = document.querySelector("#start");
     if (startButton != null) {
-        if (data.players.length >= 3 && data.players.length <= 6){
+        if (data.players.length >= 3 && data.players.length <= 6 && data.host[0].fields.phase == Phase.JOINING){
             startButton.removeAttribute("disabled");
         }
         else
@@ -155,10 +155,11 @@ function updateMainBoardContent(data){
             if (username == chooser){ //user is choosing
                 let groupCount = countLotsFromString(data.host[0].fields.group_lots);
                 let canDraw = false;
-                for (let pData of data.players){
-                    if (5 - countLotsFromString(pData.fields.lots) >= groupCount + 1)
-                        canDraw = true;
-                }
+                if (groupCount < 3)
+                    for (let pData of data.players){
+                        if (5 - countLotsFromString(pData.fields.lots) >= groupCount + 1)
+                            canDraw = true;
+                    }
 
                 if (canDraw) {
                     drawButton.removeAttribute("disabled");
@@ -171,7 +172,7 @@ function updateMainBoardContent(data){
                 }
 
                 chooseForm.classList.remove("hide");
-                chooseDisplay.classList.hide("hide");
+                chooseDisplay.classList.add("hide");
 
             } else { //someone else is choosing
                 chooseDisplay.querySelector(".player-name").textContent = chooser;
@@ -191,10 +192,11 @@ function updateMainBoardContent(data){
             }
             let pCount = data.players.length;
             let chooserIndex = data.players.findIndex((elt) => elt.fields.name == data.host[0].fields.chooser);
-            let i = (chooserIndex + 1) % pCount;
+            let i = (chooserIndex) % pCount;
             do {
+                i = (i + 1) % pCount
                 let bidElt = undefined;
-                if (data.players[i].fields.name == data.host[0].fields.bidder && username == data.host.field.bidder){ //user is the bidder
+                if (data.players[i].fields.name == data.host[0].fields.bidder && username == data.host[0].fields.bidder){ //user is the bidder
                     bidElt = instantiate(bidFormPrefab);
                     let bidInput = bidElt.querySelector("form label .bid-input");
                     bidInput.min = highestBid + 1;
@@ -203,24 +205,23 @@ function updateMainBoardContent(data){
                     bidElt.querySelector("form .bid-button").addEventListener("click", (event) => submitBid(event, false));
                     bidElt.querySelector("form .pass-button").addEventListener("click", (event) => submitBid(event, true));
                 } else {
-                    bidElt = instantiate(bidBox);
+                    bidElt = instantiate(bidBoxPrefab);
                     bidElt.querySelector(".player-name").textContent = data.players[i].fields.name;
                     bidElt.querySelector(".bid").textContent = data.players[i].fields.current_bid;
                 }
 
                 bidElements.push(bidElt);
-                i = (i + 1) % pCount
             } while (i != chooserIndex)
             bidBoxes.replaceChildren(...bidElements);
 
             let currentBidderName = data.host[0].fields.bidder;
             let passedBidder = false;
             let newBoxes = bidBoxes.children;
-            for (let i = 0; i < children.length; i++){
+            for (let i = 0; i < newBoxes.length; i++){
                 let bid = newBoxes[i].querySelector(".bid");
                 let bName = newBoxes[i].querySelector(".player-name");
-                if (bid){
-                    if (bName == currentBidderName) {
+                if (bid && bName){
+                    if (bName.textContent == currentBidderName) {
                         bid.textContent = "Bidding";
                         passedBidder = true;
                     } else if (passedBidder){
@@ -268,7 +269,7 @@ async function join(event){
 
 async function start(event){
     event.preventDefault();
-    startButton.setAttribute("disabled", true);
+    document.querySelector("#start").setAttribute("disabled", true);
     let url = "http://" + hostIP + ":8000/start/";
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const response = await fetch(url, {
@@ -298,7 +299,7 @@ async function submitBid(event, passed){
 
     let bid = 0;
     if (!passed)
-        bid = Number(bidBoxes.querySelector(".bid-form form label .bid-input").textContent);
+        bid = Number(bidBoxes.querySelector(".bid-form form label .bid-input").value);
 
     let url = "http://" + hostIP + ":8000/bid/";
     let submitData = new FormData();
@@ -323,7 +324,7 @@ function makeLotsFromString(lots){
     let lotElements = [];
     if (lots == "")
         return lotElements;
-    
+
     let lotStrings = lots.split(" ");
     for (let lotString of lotStrings){
         let lotElement = instantiate(lotPrefab);

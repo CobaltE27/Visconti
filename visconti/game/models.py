@@ -60,20 +60,32 @@ def count_lots(lots: str):
 #returns drawn lot
 def draw_lot() -> str:
     host = get_host()
-    currentNumLots = count_lots(host.group_lots)
-    if can_draw(currentNumLots):
+    if can_draw():
         lotsList = host.deck.split()
         draw = lotsList.pop(0)
         host.deck = " ".join(lotsList)
         host.save()
         return draw
 
+#adds lot to group and saves the group
 def add_to_group(lot: str):
     host = get_host()
-    host.group_lots += " " + lot
+    if host.group_lots == "":
+        host.group_lots += lot
+    else:
+        host.group_lots += " " + lot
     host.save()
 
-def can_draw(currentNumLots: int):
+def add_to_player_lots(playerName: str, lotOrLots: str):
+    player = get_players().get(name=playerName)
+    if player.lots == "":
+        player.lots += lotOrLots
+    else:
+        player.lots += " " + lotOrLots
+    player.save()
+
+def can_draw():
+    currentNumLots = count_lots(get_host().group_lots)
     if currentNumLots >= 3:
         return False
     players = Player.objects.all()
@@ -88,9 +100,9 @@ def claim_lots(playerName: str):
     host = Host.objects.all().first()
     if playerName:
         player = Player.objects.get(name=playerName)
-        player.lots += " " + host.group_lots
         player.money -= player.current_bid
         player.save()
+        add_to_player_lots(player.name, host.group_lots)
     host.group_lots = ""
     host.save()
 
@@ -125,6 +137,18 @@ def move_to_next_bidder():
         if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
             break
     host.save()
+
+def is_remaining_bidder() -> bool:
+    host = get_host()
+    hypothBidder = get_players().get(name=host.bidder)
+    while True:
+        hypothBidder = get_next_indexed_player(hypothBidder)
+        bidderLotCount = count_lots(hypothBidder.lots)
+        if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
+            return True
+        if hypothBidder.name == host.chooser:
+            break
+    return False
 
 def move_to_next_chooser():
     host = get_host()
@@ -213,12 +237,11 @@ def end_bidding_phase():
         if count_lots(p.lots) == 5: 
             maxedCount += 1
         else: 
-            leftoverPlayer = p
+            leftoverPlayer = p.name
     
     if (maxedCount >= len(players) - 1 or count_lots(get_host().deck) == 0): #all players but one maxed or deck empty, fill leftover and end bidding
-        while count_lots(leftoverPlayer.lots) < 5 and count_lots(get_host().deck) > 0:
-            leftoverPlayer.lots += " " + draw_lot()
-        leftoverPlayer.save()
+        while count_lots(get_players().get(name=leftoverPlayer).lots) < 5 and count_lots(get_host().deck) > 0:
+            add_to_player_lots(leftoverPlayer, draw_lot())
 
         score_day()
 

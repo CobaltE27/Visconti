@@ -64,12 +64,11 @@ def start_match(request):
 def receive_choice(request):
     if request.method == "POST":
         name = request.POST["username"]
-        drawOrBid = bool(request.POST["drawOrBid"])
+        drawOrBid = request.POST["drawOrBid"]
         host = models.get_host()
         if host.chooser == name:
-            if drawOrBid and models.can_draw(): #draw
+            if drawOrBid == "true" and models.can_draw(): #draw
                 models.add_to_group(models.draw_lot())
-                host.save()
             else: #move to bidding
                 if host.group_lots != "":
                     models.end_choosing_phase()
@@ -82,11 +81,11 @@ def receive_bid(request):
         bid = int(request.POST["bid"])
         player = models.get_players().get(name=name)
         host = models.get_host()
-        if host.bidder == name:
+        if host.bidder == name: #TODO check bid is highest
             player.current_bid = bid
             player.save()
         
-            if (host.chooser == name): # chooser made last bid
+            if (host.chooser == name or not models.is_remaining_bidder()): # chooser made last bid
                 models.end_bidding_phase()
             else:
                 models.move_to_next_bidder()
