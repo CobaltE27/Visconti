@@ -122,14 +122,16 @@ def move_to_next_bidder():
     while True:
         host.bidder = get_next_indexed_player(get_players().get(name=host.bidder)).name
         bidderLotCount = count_lots(get_players().get(name=host.bidder).lots)
-        if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount: break
+        if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
+            break
     host.save()
 
 def move_to_next_chooser():
     host = get_host()
     while True:
         host.chooser = get_next_indexed_player(get_players().get(name=host.chooser)).name
-        if count_lots(get_players().get(name=host.chooser).lots) < 5: break
+        if count_lots(get_players().get(name=host.chooser).lots) < 5: 
+            break
     host.save()
 
 #tallies scores for players, empties all players' lots
@@ -239,12 +241,12 @@ def end_choosing_phase():
     host = get_host()
     host.phase = Phase.BIDDING
     #bidding setup
-    host.bidder = get_next_indexed_player(get_players().get(name=host.chooser)).name
+    host.bidder = get_players().get(name=host.chooser).name
     host.save()
+    move_to_next_bidder() #find first viable bidder after chooser
     for p in get_players():
         p.current_bid = 0
         p.save()
-    
 
 def add_money(name: str, amount: int):
     p = Player.objects.get(name=name)

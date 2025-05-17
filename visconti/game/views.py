@@ -71,7 +71,8 @@ def receive_choice(request):
                 models.add_to_group(models.draw_lot())
                 host.save()
             else: #move to bidding
-                models.end_choosing_phase()
+                if host.group_lots != "":
+                    models.end_choosing_phase()
 
     return HttpResponse()
 

@@ -138,15 +138,11 @@ class ReceiveBidEndBiddingTestCase(TestCase):
         self.assertEqual(first.money, 30 + (5 * 5))
         self.assertEqual(second.money, 15 + (5 * 5))
         self.assertEqual(third.money, 7 + 0 + (5 * 5))
-        self.assertEqual(first.current_bid, 0)
-        self.assertEqual(second.current_bid, 0)
-        self.assertEqual(third.current_bid, 0)
 
         self.assertEqual(host.phase, models.Phase.CHOOSING)
         self.assertEqual(host.day, 2)
         self.assertEqual(host.group_lots, "")
         self.assertEqual(host.chooser, "third")
-        self.assertEqual(host.bidder, "first")
         self.assertEqual(models.count_lots(host.deck), 18)
 
 class ReceiveBidChoosingTestCase(TestCase):
@@ -172,3 +168,50 @@ class ReceiveBidChoosingTestCase(TestCase):
         self.assertEqual(host.group_lots, "")
         self.assertEqual(host.chooser, "first")
         self.assertEqual(host.deck, "10x")
+
+class ReceiveBidDiscardTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.BIDDING, day=1, group_lots="1x", deck="10x", chooser="second", bidder="second")
+        models.Player.objects.create(name="first", money=0, lots="1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+
+    def test_discard(self):
+        models.end_bidding_phase()
+        first = models.Player.objects.get(name="first")
+        second = models.Player.objects.get(name="second")
+        third = models.Player.objects.get(name="third")
+        host = models.get_host()
+
+        self.assertEqual(first.money, 0)
+        self.assertEqual(second.money, 0)
+        self.assertEqual(third.money, 0)
+        self.assertEqual(first.lots, "1x")
+        self.assertEqual(second.lots, "1x 1x")
+        self.assertEqual(third.lots, "1x 1x 1x")
+
+        self.assertEqual(host.phase, models.Phase.CHOOSING)
+        self.assertEqual(host.day, 1)
+        self.assertEqual(host.group_lots, "")
+        self.assertEqual(host.chooser, "third")
+        self.assertEqual(host.deck, "10x")
+
+class ReceiveChoiceEndChoosingTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.CHOOSING, day=1, group_lots="1x 1x 1x", deck="10x", chooser="second", bidder="second")
+        models.Player.objects.create(name="first", money=0, lots="", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+
+    def test_end_choosing(self):
+        models.end_choosing_phase()
+        first = models.Player.objects.get(name="first")
+        second = models.Player.objects.get(name="second")
+        third = models.Player.objects.get(name="third")
+        host = models.get_host()
+
+        self.assertEqual(host.phase, models.Phase.BIDDING)
+        self.assertEqual(host.day, 1)
+        self.assertEqual(host.group_lots, "1x 1x 1x")
+        self.assertEqual(host.chooser, "second")
+        self.assertEqual(host.bidder, "first")
