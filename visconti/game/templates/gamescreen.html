@@ -47,7 +47,7 @@
                     </form>
                 </div>
                 
-                <h2>Lots in deck: <span id="lot-counter"></span></h2>
+                <h2>Lots in deck: <span id="deck-counter"></span></h2>
                 <h2>Lots in group:</h2>
                 <div class="lot-container">
 
@@ -134,14 +134,14 @@
 
         <div id="prefab-bid-form" class="bid-form">
             <form> {% csrf_token %}
-                <label>Bid:<input class="bid-input" type="number" min="1" required></label>
+                <label>Bid:<input class="bid-input" type="number" min="1" step="1" required></label>
                 <button class="bid-button">Place Bid</button>
                 <button class="pass-button">Pass</button>
             </form>
         </div>
 
         <div id="prefab-player-box" class="player-box">
-            <span class="player-name"></span>: <span class="player-money"></span>
+            <h2><span class="player-name"></span>: <span class="player-money"></span></h2>
             <div class="lot-container"></div>
         </div>
     </div>
