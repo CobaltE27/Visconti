@@ -13,6 +13,7 @@ const Phase = {
     END: "end"
 };
 const florin = "&fnof;";
+const checkPeriod = 1000;
 
 var isHost = document.querySelector("#isHost").value;
 var hostIP = document.querySelector("#hostIP").value;
@@ -53,10 +54,10 @@ if (isHost == "True"){
     hostIP = "127.0.0.1"
     let startButton = document.querySelector("#start");
     startButton.addEventListener("click", start);
-    setTimeout(refreshData, 5000);
+    setTimeout(refreshData, checkPeriod);
 }
 else{
-    setTimeout(refreshData, 5000);
+    setTimeout(refreshData, checkPeriod);
 }
 
 async function refreshData(){
@@ -76,7 +77,7 @@ async function refreshData(){
     updatePyramids(data);
     updateMainBoardContent(data);
 
-    setTimeout(refreshData, 5000);
+    setTimeout(refreshData, checkPeriod);
 }
 
 function updateStartButton(data){
