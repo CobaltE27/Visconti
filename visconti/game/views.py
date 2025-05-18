@@ -22,16 +22,14 @@ def host_match(request):
 
 def join_match(request):
     localNetHost = models.Host.objects.all()
-    if localNetHost.exists():
-        print(localNetHost.first().localIP)
-
+    if localNetHost.exists() and models.get_host().phase == models.Phase.JOINING:
         context = {
             "isHost": False, 
             "hostIP": localNetHost.first().localIP,
         }
         return render(request, "gamescreen.html", context)
     else:
-        return HttpResponse("No match started!")
+        return HttpResponse("No match started or match in progress!")
 
 def data(request):
     players = models.get_players()
