@@ -331,10 +331,13 @@ def advance_step():
     host.steps += 1
     host.save()
 
-def add_line_to_log(line: str):
+def add_line_to_log(line: str, bold:bool=False):
     '''Add the given string to game logs'''
     host = get_host()
-    host.log = line + "\n" + host.log
+    if bold:
+        host.log = format_bold(line) + "\n" + host.log
+    else:
+        host.log = line + "\n" + host.log
     host.save()
 
 def format_lots(lots: str) -> str:
@@ -352,6 +355,9 @@ def format_rank_index(index: int) -> str:
     '''Returns ordinal number string for given index under 10, 0 -> 1st and so on.'''
     # Adapted from https://gist.github.com/FlantasticDan/3eb192fac85ab5efa2002fb7165e4f35
     return str(index + 1) + SUFFIXES.get(index + 1, "th")
+
+def format_bold(input: str) -> str:
+    '''Formats a string as bold for logging'''
 
 def cumulative_pyramid_score(level: int) -> int:
     '''Returns money rewarded for being on the given pyramid tier independent of ranking.'''
