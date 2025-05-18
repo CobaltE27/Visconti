@@ -27,6 +27,8 @@ class Host(models.Model):
     deck = models.CharField(max_length=500, default="", null=False)
     chooser = models.CharField(max_length=100, default="")
     bidder = models.CharField(max_length=100, default="")
+    steps = models.IntegerField(default=0)
+    log = models.TextField(default="Match opened.\n")
 
 class Player(models.Model):
     name = models.CharField(max_length=100, unique=True)
