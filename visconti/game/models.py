@@ -17,8 +17,6 @@ class Good(str, Enum):
     SPICE = "spice"
     FURS = "furs"
 
-florin = "ƒ"
-
 # for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
 class Host(models.Model):
@@ -204,6 +202,7 @@ def score_day():
         portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(highestPlayers), len(rewards))]) // len(highestPlayers)
         for pName in highestPlayers:
             add_money(pName, portion)
+            add_line_to_log(pName + "is awarded " + format_money(portion) + "(" + format_rank_index(currentRewardIndex) + ").")
             # print("r:" + pName + str(portion))
         currentRewardIndex += len(highestPlayers)
         for highest in highestPlayers:
@@ -221,7 +220,9 @@ def score_day():
         p.lots = ""
         #absolute pyramid points
         for good in goodsNames:
-            p.money += cumulative_pyramid_score(getattr(p, good))
+            reward = cumulative_pyramid_score(getattr(p, good))
+            p.money += reward
+            add_line_to_log(p.name + " is awarded " + format_money(reward) + " for their investment in " + good + ".")
             # print("pc:" + p.name + str(cumulative_pyramid_score(getattr(p, good))))
         p.save()
     #relative pyramid points
@@ -236,10 +237,16 @@ def score_day():
                         levelPlayers.append(p.name)
                 if len(levelPlayers) > 0:
                     portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
-                    for winner in levelPlayers:
-                        add_money(winner, portion)
+                    for winnerName in levelPlayers:
+                        add_money(winnerName, portion)
+                        add_line_to_log(winnerName + "is awarded " + format_money(portion) + "(" + format_rank_index(currentRewardIndex) + " in " + good + " investment).")
                         # print("pr:" + winner + str(portion))
                 currentRewardIndex += len(levelPlayers)
+    
+    playerMoneyTotals = ""
+    for p in get_players():
+        playerMoneyTotals += p.name + ": " + format_money(p.money) + ", "
+    add_line_to_log("After scoring: " + playerMoneyTotals[:len(playerMoneyTotals) - 2] + ".")
 
 def end_bidding_phase():
     '''Claims lots for highest bidder, gives lots to last non-full player if applicable, scores players, determines which phase comes next.
@@ -327,10 +334,17 @@ def format_lots(lots: str) -> str:
     '''formats lots into a loggable group'''
     return "[" + "][".join(lots.split()) + "]"
 
+FLORIN = "ƒ"
 def format_money(money: int) -> str:
     '''formats money for logging'''
     sign = "-" if money < 0 else ""
-    return sign + florin + str(abs(money))
+    return sign + FLORIN + str(abs(money))
+
+SUFFIXES = {1: 'st', 2: 'nd', 3: 'rd'}
+def format_rank_index(index: int) -> str:
+    '''Returns ordinal number string for given index under 10, 0 -> 1st and so on.'''
+    # Adapted from https://gist.github.com/FlantasticDan/3eb192fac85ab5efa2002fb7165e4f35
+    return str(index + 1) + SUFFIXES.get(index + 1, "th")
 
 def cumulative_pyramid_score(level: int) -> int:
     '''Returns money rewarded for being on the given pyramid tier independent of ranking.'''
