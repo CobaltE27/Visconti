@@ -426,7 +426,10 @@ function makeLotsFromString(lots){
                 lotElement.classList.add(Good.GOLD);
                 break;
         }
-        lotElement.textContent = lotString.substring(1);
+        let value = lotString.substring(1);
+        lotElement.querySelector("span").textContent = value;
+        if (Number(value) >= 5)
+            lotElement.classList.add("shiny");
         lotElements.push(lotElement);
     }
     return lotElements;
