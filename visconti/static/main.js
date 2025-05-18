@@ -14,6 +14,7 @@ const Phase = {
 };
 const florin = "&fnof;";
 const checkPeriod = 1000;
+var steps = -1;
 
 var isHost = document.querySelector("#isHost").value;
 var hostIP = document.querySelector("#hostIP").value;
@@ -62,21 +63,30 @@ else{
 
 async function refreshData(){
     let url = "http://" + hostIP + ":8000/data/";
-    const response = await fetch(url);
-    if (!response.ok){
-        throw new Error(response.status);
+    try {
+        const response = await fetch(url);
+        if (!response.ok){
+            throw new Error(response.status);
+        }
+        const data = await response.json();
+
+        console.log(data);
+        let hostSteps = data.host[0].fields.steps;
+        if (steps < hostSteps){
+            console.log("refresh!");
+            steps = hostSteps;
+            phase = data.host[0].fields.phase;
+            day = Number(data.host[0].fields.day);
+            updateMainBoardStatics(data);
+            updateStartButton(data);
+            displayPlayers(data);
+            updatePyramids(data);
+            updateMainBoardContent(data);
+        }
+    } catch (e) {
+        console.log(e + ", ignoring and querying again.");
     }
-    const data = await response.json();
-
-    console.log(data);
-    phase = data.host[0].fields.phase;
-    day = Number(data.host[0].fields.day);
-    updateMainBoardStatics(data);
-    updateStartButton(data);
-    displayPlayers(data);
-    updatePyramids(data);
-    updateMainBoardContent(data);
-
+    
     setTimeout(refreshData, checkPeriod);
 }
 
@@ -148,6 +158,7 @@ function updateMainBoardContent(data){
             bidView.classList.add("hide");
             chooseDisplay.classList.add("hide");
             chooseForm.classList.add("hide");
+            document.querySelector("#deck-status").classList.add("hide");
             let winnerList = [];
             let highestMoney = 0;
             for (let pData of data.players)
