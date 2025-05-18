@@ -298,8 +298,8 @@ async function start(event){
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
         const response = await fetch(url, {
-        method: "POST",
-        headers: {'X-CSRFToken': csrfToken},
+            method: "POST",
+            headers: {'X-CSRFToken': csrfToken},
         });
         if (!response.ok)
             throw Error()
@@ -311,36 +311,59 @@ async function start(event){
 async function choose(event, drawOrBid){
     if (event)
         event.preventDefault();
+    drawButton.setAttribute("disabled", true);
+    startBidButton.setAttribute("disabled", true);
 
     let url = "http://" + hostIP + ":8000/choose/";
     let submitData = new FormData();
     submitData.append("drawOrBid", drawOrBid);
     submitData.append("username", username);
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const response = await fetch(url, {
-        method: "POST",
-        body: submitData,
-        headers: {'X-CSRFToken': csrfToken},
-    });
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            body: submitData,
+            headers: {'X-CSRFToken': csrfToken},
+        });
+        if (!response.ok)
+            throw Error()
+    } catch (e) {
+        drawButton.removeAttribute("disabled");
+        startBidButton.removeAttribute("disabled");
+    }
 }
 
 async function submitBid(event, passed){
     event.preventDefault();
+    let input = bidBoxes.querySelector(".bid-form form label .bid-input");
+    let bidButton = bidBoxes.querySelector(".bid-form form .bid-button");
+    let passButton = bidBoxes.querySelector(".bid-form form .pass-button");
+    input.setAttribute("disabled", true);
+    bidButton.setAttribute("disabled", true);
+    passButton.setAttribute("disabled", true);
 
     let bid = 0;
     if (!passed)
-        bid = Number(bidBoxes.querySelector(".bid-form form label .bid-input").value);
+        bid = Number(input.value);
 
     let url = "http://" + hostIP + ":8000/bid/";
     let submitData = new FormData();
     submitData.append("bid", bid);
     submitData.append("username", username);
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const response = await fetch(url, {
-        method: "POST",
-        body: submitData,
-        headers: {'X-CSRFToken': csrfToken},
-    });
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            body: submitData,
+            headers: {'X-CSRFToken': csrfToken},
+        });
+        if (!response.ok)
+            throw Error()
+    } catch (e) {
+        input.removeAttribute("disabled");
+        bidButton.removeAttribute("disabled");
+        passButton.removeAttribute("disabled");
+    }
 }
 
 function instantiate(element){
