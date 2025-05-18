@@ -246,7 +246,7 @@ def score_day():
                     portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
                     for winnerName in levelPlayers:
                         add_money(winnerName, portion)
-                        add_line_to_log(winnerName + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + " in " + good + " investment).")
+                        add_line_to_log(winnerName + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + " in " + good + ").")
                         # print("pr:" + winner + str(portion))
                 currentRewardIndex += len(levelPlayers)
     
