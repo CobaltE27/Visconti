@@ -144,14 +144,17 @@ def start_day():
 def move_to_next_bidder():
     '''Changes the bidder to the next viable option, logging all skipped players and the next viable bidder.'''
     host = get_host()
+    linesToLog = []
     while True:
         host.bidder = get_next_indexed_player(get_players().get(name=host.bidder)).name
         bidderLotCount = count_lots(get_players().get(name=host.bidder).lots)
         if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
             break
-        add_line_to_log(host.bidder + "cannot bid.")
+        linesToLog.append(host.bidder + " cannot bid.")
     host.save()
-    add_line_to_log(get_host().bidder + "is now bidding.")
+    for l in linesToLog:
+        add_line_to_log(l)
+    add_line_to_log(get_host().bidder + " is now bidding.")
 
 def is_remaining_bidder() -> bool:
     '''returns if anyone is left who can bid'''
@@ -169,13 +172,16 @@ def is_remaining_bidder() -> bool:
 def move_to_next_chooser():
     '''Sets the chooser to the nex viable option in turn order, logging viable chooser and skipped choosers'''
     host = get_host()
+    linesToLog = []
     while True:
         host.chooser = get_next_indexed_player(get_players().get(name=host.chooser)).name
         if count_lots(get_players().get(name=host.chooser).lots) < 5: 
             break
-        add_line_to_log(host.chooser + " has too many lots to choose.")
+        linesToLog.append(host.chooser + " has too many lots to choose.")
     host.save()
-    add_line_to_log(get_host().chooser + "is now choosing.")
+    for l in linesToLog:
+        add_line_to_log(l)
+    add_line_to_log(get_host().chooser + " is now choosing.")
 
 def score_day():
     '''Distributes rewards, updates pyramids, and empties players' lots, logging such'''
