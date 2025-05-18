@@ -121,67 +121,71 @@
                     </tbody>
                 </table>
             </div>
-            <div id="rules">
-                <h2>Scoring Rules:</h2>
-                <p>
-                    All scoring is evaluated at the end of the day. In the event of a tie when ranking players, players add the rewards and divide reward 
-                    money evenly, rounding down (for example: if 1st awards <span class="money">10</span>, second awards <span class="money">5</span>, 
-                    third awards <span class="money">1</span>, and Al and Bo tie for first, then Al and Bo
-                    each get <span class="money">7</span> (<code>(5 + 10) / 2</code>), and whoever got third gets <span class="money">1</span>.)
-                </p>
-                <p>
-                    Each lot is marked with its numeric value. Players are ranked by the combined value of their lots. Money is awarded to players by
-                    their rank relative to other players (You could have a high-value ship of lots and still gain no money because everyone else had yet higher values).
-                </p>
-                <p>
-                    The table below indicates how much money is awarded based on rank:
-                </p>
-                <table id="three-rank" class="hide">
-                    <tbody>
-                        <tr><th>1st:</th><td>30</td></tr>
-                        <tr><th>2nd:</th><td>15</td></tr>
-                        <tr><th>3rd:</th><td>0</td></tr>
-                    </tbody>
-                </table>
-                <table id="four-rank" class="hide">
-                    <tbody>
-                        <tr><th>1st:</th><td>30</td></tr>
-                        <tr><th>2nd:</th><td>20</td></tr>
-                        <tr><th>3rd:</th><td>10</td></tr>
-                        <tr><th>4th:</th><td>0</td></tr>
-                    </tbody>
-                </table>
-                <table id="five-rank" class="hide">
-                    <tbody>
-                        <tr><th>1st:</th><td>30</td></tr>
-                        <tr><th>2nd:</th><td>20</td></tr>
-                        <tr><th>3rd:</th><td>10</td></tr>
-                        <tr><th>4th:</th><td>5</td></tr>
-                        <tr><th>5th:</th><td>0</td></tr>
-                    </tbody>
-                </table>
-                <table id="six-rank" class="hide">
-                    <tbody>
-                        <tr><th>1st:</th><td>30</td></tr>
-                        <tr><th>2nd:</th><td>20</td></tr>
-                        <tr><th>3rd:</th><td>15</td></tr>
-                        <tr><th>4th:</th><td>10</td></tr>
-                        <tr><th>5th:</th><td>5</td></tr>
-                        <tr><th>6th:</th><td>0</td></tr>
-                    </tbody>
-                </table>
-                <p>
-                    Players are then awarded additional points based on their investment in particular goods. When the day ends, players move up one level per lot 
-                    matching the color of a given investment table (note that gold doesn't match any investment table).
+            <div id="bottom-info">
+                <div id="rules">
+                    <h2>Scoring Rules:</h2>
+                    <p>
+                        All scoring is evaluated at the end of the day. In the event of a tie when ranking players, players add the rewards and divide reward 
+                        money evenly, rounding down (for example: if 1st awards <span class="money">10</span>, second awards <span class="money">5</span>, 
+                        third awards <span class="money">1</span>, and Al and Bo tie for first, then Al and Bo
+                        each get <span class="money">7</span> (<code>(5 + 10) / 2</code>), and whoever got third gets <span class="money">1</span>.)
+                    </p>
+                    <p>
+                        Each lot is marked with its numeric value. Players are ranked by the combined value of their lots. Money is awarded to players by
+                        their rank relative to other players (You could have a high-value ship of lots and still gain no money because everyone else had yet higher values).
+                    </p>
+                    <p>
+                        The table below indicates how much money is awarded based on rank:
+                    </p>
+                    <table id="three-rank" class="hide">
+                        <tbody>
+                            <tr><th>1st:</th><td>30</td></tr>
+                            <tr><th>2nd:</th><td>15</td></tr>
+                            <tr><th>3rd:</th><td>0</td></tr>
+                        </tbody>
+                    </table>
+                    <table id="four-rank" class="hide">
+                        <tbody>
+                            <tr><th>1st:</th><td>30</td></tr>
+                            <tr><th>2nd:</th><td>20</td></tr>
+                            <tr><th>3rd:</th><td>10</td></tr>
+                            <tr><th>4th:</th><td>0</td></tr>
+                        </tbody>
+                    </table>
+                    <table id="five-rank" class="hide">
+                        <tbody>
+                            <tr><th>1st:</th><td>30</td></tr>
+                            <tr><th>2nd:</th><td>20</td></tr>
+                            <tr><th>3rd:</th><td>10</td></tr>
+                            <tr><th>4th:</th><td>5</td></tr>
+                            <tr><th>5th:</th><td>0</td></tr>
+                        </tbody>
+                    </table>
+                    <table id="six-rank" class="hide">
+                        <tbody>
+                            <tr><th>1st:</th><td>30</td></tr>
+                            <tr><th>2nd:</th><td>20</td></tr>
+                            <tr><th>3rd:</th><td>15</td></tr>
+                            <tr><th>4th:</th><td>10</td></tr>
+                            <tr><th>5th:</th><td>5</td></tr>
+                            <tr><th>6th:</th><td>0</td></tr>
+                        </tbody>
+                    </table>
+                    <p>
+                        Players are then awarded additional points based on their investment in particular goods. When the day ends, players move up one level per lot 
+                        matching the color of a given investment table (note that gold doesn't match any investment table).
 
-                    The player at the highest level in the investment table for a good gets <span class="money">10</span>, and the second highest gets 
-                    <span class="money">5</span>, no matter how low they are in the table.
-                </p>
-                <p>
-                    Seperately, all players in one of the top 3 levels of an investment table get money equal to the number marking that level.
-                    This reward is given every day, even if a player previously claimed the reward for that level.
-                </p>
+                        The player at the highest level in the investment table for a good gets <span class="money">10</span>, and the second highest gets 
+                        <span class="money">5</span>, no matter how low they are in the table.
+                    </p>
+                    <p>
+                        Seperately, all players in one of the top 3 levels of an investment table get money equal to the number marking that level.
+                        This reward is given every day, even if a player previously claimed the reward for that level.
+                    </p>
+                </div>
+                <textarea id="log-area" rows="15" disabled>logs</textarea>
             </div>
+            
         </div>
         <div id="players">
             

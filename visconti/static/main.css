@@ -23,6 +23,18 @@ h2, #main-board h1 {
     flex-direction: row;
     justify-content: space-between;
 }
+#bottom-info {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+#rules {
+    width: 60%;
+}
+#log-area {
+    width: 40%;
+    resize: none;
+}
 #players {
     display: flex;
     flex-direction: column;

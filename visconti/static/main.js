@@ -50,6 +50,8 @@ var fourRank = document.querySelector("#four-rank");
 var fiveRank = document.querySelector("#five-rank");
 var sixRank = document.querySelector("#six-rank");
 
+var logArea = document.querySelector("#log-area");
+
 var lotPrefab = document.querySelector("#prefab-lot");
 
 if (isHost == "True"){
@@ -116,6 +118,7 @@ function updateMainBoardStatics(data){
     phaseDisplay.textContent = data.host[0].fields.phase;
     mainBoard.querySelector(".lot-container").replaceChildren(...makeLotsFromString(data.host[0].fields.group_lots));
     deckCounter.textContent = countLotsFromString(data.host[0].fields.deck);
+    logArea.textContent = data.host[0].fields.log;
 
     let pCount = data.players.length;
     threeRank.classList.add("hide");
