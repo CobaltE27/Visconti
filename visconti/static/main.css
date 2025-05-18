@@ -1,3 +1,7 @@
+* {
+    font-family: sans-serif;
+}
+
 h2, #main-board h1 {
     margin-top: 0.2rem;
     margin-bottom: 0.2rem;
@@ -13,6 +17,11 @@ h2, #main-board h1 {
     gap: 1.5rem;
     padding: 0 1rem;
     flex-grow: 1;
+}
+#status-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 #players {
     display: flex;
@@ -32,17 +41,20 @@ h2, #main-board h1 {
     display: none;
 }
 
-.gold { background-color: gold; border: 0.4rem solid rgb(255, 166, 0) }
-.grain { background-color: #234ba1;  border-color: #d1e0ff;}
-.cloth { background-color: #a31a1a; border-color: #ffe030;}
-.dye { background-color: #0a5207; border-color: #ffe77f;}
-.spice { background-color: #4d1f3f; border-color: #d2c2ff;}
-.furs { background-color: #663c29; border-color: #bfcfdd;}
 .grain, .cloth, .dye, .spice, .furs {
     color: white;
-    border-radius: 0.2rem;
+}
+.grain, .cloth, .dye, .spice, .furs, .gold {
+    box-sizing: border-box;
+    border-width: 0.4rem;
     border-style: solid;
 }
+.gold { background-color: gold; border-color: rgb(255, 166, 0); border-style: outset;}
+.grain { background-color: #234ba1;  border-color: #2C5FCB;}
+.cloth { background-color: #a31a1a; border-color: #CF2121;}
+.dye { background-color: #0a5207; border-color: #10810B;}
+.spice { background-color: #4d1f3f; border-color: #712E5D;}
+.furs { background-color: #663c29; border-color: #8A5138;}
 .lot {
     display: flex;
     width: 3rem;
@@ -50,6 +62,9 @@ h2, #main-board h1 {
     font-weight: bold;
     justify-content: center;
     align-items: center;
+    font-family: serif;
+    font-size: 2rem;
+    border-radius: 0.4rem;
 }
 .lot-container {
     display: flex;
@@ -75,13 +90,9 @@ h2, #main-board h1 {
 }
 #pyramids table tbody tr th {
     width: 1.5rem;
-    border-style: solid;
-    border-width: 1px;
 }
 #pyramids table tbody tr td {
     text-align: center;
-    border-style: solid;
-    border-width: 1px;
 }
 
 #main-board {

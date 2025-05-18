@@ -41,6 +41,10 @@ var deckCounter = document.querySelector("#deck-counter");
 var winnerDisplay = document.querySelector("#winner");
 
 var pyramidsArea = document.querySelector("#pyramids");
+var threeRank = document.querySelector("#three-rank");
+var fourRank = document.querySelector("#four-rank");
+var fiveRank = document.querySelector("#five-rank");
+var sixRank = document.querySelector("#six-rank");
 
 var lotPrefab = document.querySelector("#prefab-lot");
 
@@ -90,6 +94,20 @@ function updateMainBoardStatics(data){
     phaseDisplay.textContent = data.host[0].fields.phase;
     mainBoard.querySelector(".lot-container").replaceChildren(...makeLotsFromString(data.host[0].fields.group_lots));
     deckCounter.textContent = countLotsFromString(data.host[0].fields.deck);
+    
+    let pCount = data.players.length;
+    threeRank.classList.add("hide");
+    fourRank.classList.add("hide");
+    fiveRank.classList.add("hide");
+    sixRank.classList.add("hide");
+    if (pCount <= 3)
+        threeRank.classList.remove("hide");
+    else if (pCount == 4)
+        fourRank.classList.remove("hide");
+    else if (pCount == 5)
+        fiveRank.classList.remove("hide");
+    else
+        sixRank.classList.remove("hide");
 }
 
 function displayPlayers(data){
