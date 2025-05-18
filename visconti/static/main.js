@@ -82,6 +82,8 @@ async function refreshData(){
             displayPlayers(data);
             updatePyramids(data);
             updateMainBoardContent(data);
+            if (phase == Phase.END)
+                return; //don't continue querying server
         }
     } catch (e) {
         console.log(e + ", ignoring and querying again.");
