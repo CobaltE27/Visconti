@@ -283,6 +283,11 @@ def advance_step():
     host.steps += 1
     host.save()
 
+def add_line_to_log(line: str):
+    host = get_host()
+    host.log = line + "\n" + host.log
+    host.save()
+
 def cumulative_pyramid_score(level: int) -> int:
     if level == 7: return 20
     elif level == 6: return 10

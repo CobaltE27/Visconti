@@ -51,6 +51,7 @@ def set_name(request):
             # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s4 f5")
             newPlayer.save()
             models.advance_step()
+            models.add_line_to_log(newName + " joined!")
             return HttpResponse()
         return HttpResponse(status=403)
 
@@ -61,6 +62,7 @@ def start_match(request):
         if pCount >= 3 and pCount <= 6:
             models.start_day()
             models.advance_step()
+            models.add_line_to_log("Match started.")
             return HttpResponse()
         return HttpResponse(status=403)
 
