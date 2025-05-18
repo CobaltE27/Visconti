@@ -190,6 +190,9 @@ function updateMainBoardContent(data){
                     choose(undefined, false); //start bid
                 }
 
+                if (groupCount == 0)
+                    startBidButton.setAttribute("disabled", true);
+
                 chooseForm.classList.remove("hide");
                 chooseDisplay.classList.add("hide");
 

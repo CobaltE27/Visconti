@@ -73,10 +73,10 @@ def receive_choice(request):
         if host.chooser == name:
             if drawOrBid == "true" and models.can_draw(): #draw
                 models.add_to_group(models.draw_lot())
-            else: #move to bidding
-                if host.group_lots != "":
-                    models.end_choosing_phase()
-            return HttpResponse()
+                return HttpResponse()
+            elif host.group_lots != "": #move to bidding
+                models.end_choosing_phase()
+                return HttpResponse()
         return HttpResponse(status=403)
 
 def receive_bid(request):
