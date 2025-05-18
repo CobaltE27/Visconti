@@ -77,6 +77,7 @@ def add_to_group(lot: str):
     else:
         host.group_lots += " " + lot
     host.save()
+    add_line_to_log("[" + lot + "] added to group.")
 
 def add_to_player_lots(playerName: str, lotOrLots: str):
     player = get_players().get(name=playerName)
@@ -85,6 +86,8 @@ def add_to_player_lots(playerName: str, lotOrLots: str):
     else:
         player.lots += " " + lotOrLots
     player.save()
+
+    lotsList = lotOrLots.split()
 
 def can_draw():
     currentNumLots = count_lots(get_host().group_lots)
@@ -99,6 +102,7 @@ def can_draw():
 
 #move group lots to selected player, is playerName is None: lot group is discarded
 def claim_lots(playerName: str):
+    add_line_to_log(playerName + " claimed [" + get_host().group_lots.replace(" ", "][") + "].")
     host = Host.objects.all().first()
     if playerName:
         player = Player.objects.get(name=playerName)
@@ -267,6 +271,7 @@ def end_bidding_phase():
         move_to_next_chooser()
 
 def end_choosing_phase():
+    add_line_to_log("Start bidding.")
     host = get_host()
     host.phase = Phase.BIDDING
     #bidding setup
