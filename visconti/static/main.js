@@ -15,6 +15,7 @@ const Phase = {
 const florin = "&fnof;";
 const checkPeriod = 1000;
 var steps = -1;
+var failCounter = 0;
 
 var isHost = document.querySelector("#isHost").value;
 var hostIP = document.querySelector("#hostIP").value;
@@ -71,6 +72,7 @@ async function refreshData(){
         const data = await response.json();
 
         console.log(data);
+        failCounter = 0;
         let hostSteps = data.host[0].fields.steps;
         if (steps < hostSteps){
             console.log("refresh!");
@@ -86,7 +88,13 @@ async function refreshData(){
                 return; //don't continue querying server
         }
     } catch (e) {
-        console.log(e + ", ignoring and querying again.");
+        failCounter++;
+        if (failCounter < 20)
+            console.log(e + ", ignoring and querying again.");
+        else {
+            console.log(e + ", too many failures, giving up.");
+            return;
+        }
     }
     
     setTimeout(refreshData, checkPeriod);
