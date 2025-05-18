@@ -80,7 +80,7 @@ def add_to_group(lot: str):
     else:
         host.group_lots += " " + lot
     host.save()
-    add_line_to_log(formatLots(lot) + " was drawn.")
+    add_line_to_log(format_lots(lot) + " was drawn.")
 
 def add_to_player_lots(playerName: str, lotOrLots: str):
     '''Adds the given lot string to the given player's lots.'''
@@ -110,9 +110,9 @@ def claim_lots(playerName: str):
         player.money -= player.current_bid
         player.save()
         add_to_player_lots(player.name, host.group_lots)
-        logLine = playerName + " claimed " + formatLots(host.group_lots) + " for " + formatMoney(player.current_bid) + "."
+        logLine = playerName + " claimed " + format_lots(host.group_lots) + " for " + format_money(player.current_bid) + "."
     else:
-        logLine = "Lacking any bids, the group " + formatLots(host.group_lots) + " was tossed into the harbor."
+        logLine = "Lacking any bids, the group " + format_lots(host.group_lots) + " was tossed into the harbor."
     host.group_lots = ""
     host.save()
     add_line_to_log(logLine)
@@ -130,7 +130,7 @@ def select_first_chooser():
     add_line_to_log("The first chooser is " + get_host().chooser + ".")
 
 def start_day():
-    '''Selects the first chooser, and sets up for choosing phase, logging such.'''
+    '''Selects the first chooser, and sets up for choosing phase, logging the current day and such.'''
     add_line_to_log("Start choosing for day " + str(get_host().day) + ".")
     select_first_chooser()
     host = get_host()
@@ -255,6 +255,8 @@ def end_bidding_phase():
             highestPlayerName = p.name
     claim_lots(highestPlayerName)
 
+    add_line_to_log("Bidding is over.")
+
     players = get_players()
     maxedCount = 0
     leftoverPlayer = None
@@ -266,7 +268,10 @@ def end_bidding_phase():
     
     if (maxedCount >= len(players) - 1 or count_lots(get_host().deck) == 0): #all players but one maxed or deck empty, fill leftover and end bidding
         while count_lots(get_players().get(name=leftoverPlayer).lots) < 5 and count_lots(get_host().deck) > 0:
-            add_to_player_lots(leftoverPlayer, draw_lot())
+            drawnLot = draw_lot()
+            add_to_player_lots(leftoverPlayer, drawnLot)
+            add_line_to_log(leftoverPlayer + " gets " + format_lots(drawnLot) + "for free.")
+        add_line_to_log("Auctioning is over for the day.")
 
         score_day()
 
@@ -275,6 +280,7 @@ def end_bidding_phase():
         if (host.day == 3):
             host.phase = Phase.END
             host.save()
+            add_line_to_log("The game is over.")
         else:
             host.day += 1
             host.save()
@@ -283,6 +289,7 @@ def end_bidding_phase():
         host = get_host()
         host.phase = Phase.CHOOSING
         host.save()
+        add_line_to_log("Begin choosing lots to auction.")
         move_to_next_chooser()
 
 def end_choosing_phase():
@@ -316,11 +323,11 @@ def add_line_to_log(line: str):
     host.log = line + "\n" + host.log
     host.save()
 
-def formatLots(lots: str) -> str:
+def format_lots(lots: str) -> str:
     '''formats lots into a loggable group'''
     return "[" + "][".join(lots.split()) + "]"
 
-def formatMoney(money: int) -> str:
+def format_money(money: int) -> str:
     '''formats money for logging'''
     sign = "-" if money < 0 else ""
     return sign + florin + str(abs(money))
