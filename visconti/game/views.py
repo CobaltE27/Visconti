@@ -45,7 +45,6 @@ def data(request):
 def model_to_dict(queryResult):
     return json.loads(serializers.serialize("json", queryResult))
 
-
 def set_name(request):
     if request.method == "POST":
         newName = request.POST["name"]
@@ -53,6 +52,7 @@ def set_name(request):
         if not models.get_players().filter(name=newName).exists():
             newPlayer = models.Player.objects.create(name=newName, current_bid=0)
             newPlayer.save()
+            models.advance_step()
             return HttpResponse()
         return HttpResponse(status=403)
 
@@ -62,6 +62,7 @@ def start_match(request):
         pCount = len(models.get_players())
         if pCount >= 3 and pCount <= 6:
             models.start_day()
+            models.advance_step()
             return HttpResponse()
         return HttpResponse(status=403)
 
@@ -73,9 +74,11 @@ def receive_choice(request):
         if host.chooser == name:
             if drawOrBid == "true" and models.can_draw(): #draw
                 models.add_to_group(models.draw_lot())
+                models.advance_step()
                 return HttpResponse()
             elif host.group_lots != "": #move to bidding
                 models.end_choosing_phase()
+                models.advance_step()
                 return HttpResponse()
         return HttpResponse(status=403)
 
@@ -93,6 +96,7 @@ def receive_bid(request):
                 models.end_bidding_phase()
             else:
                 models.move_to_next_bidder()
+            models.advance_step()
             return HttpResponse()
         return HttpResponse(status=403)
 

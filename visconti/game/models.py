@@ -278,6 +278,11 @@ def add_money(name: str, amount: int):
     p.money += amount
     p.save()
 
+def advance_step():
+    host = get_host()
+    host.steps += 1
+    host.save()
+
 def cumulative_pyramid_score(level: int) -> int:
     if level == 7: return 20
     elif level == 6: return 10
