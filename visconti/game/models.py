@@ -17,6 +17,8 @@ class Good(str, Enum):
     SPICE = "spice"
     FURS = "furs"
 
+florin = "ƒ"
+
 # for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
 class Host(models.Model):
@@ -41,7 +43,8 @@ class Player(models.Model):
     spice = models.IntegerField(default=0, null=False)
     furs = models.IntegerField(default=0, null=False)
 
-def get_shuffled_deck(playerCount: int):
+def get_shuffled_deck(playerCount: int) -> str:
+    '''Returns a space-seperated string containing and amount of lots appropriate for the given number of players'''
     deck = []
     costs = ["0", "1", "2", "3", "4", "5", "5"]
     goods = ["g", "c", "d", "s", "f"]
@@ -59,8 +62,8 @@ def get_shuffled_deck(playerCount: int):
 def count_lots(lots: str):
     return len(lots.split())
 
-#returns drawn lot
 def draw_lot() -> str:
+    '''Removes a lot from the deck and returns it.'''
     host = get_host()
     if can_draw():
         lotsList = host.deck.split()
@@ -69,25 +72,24 @@ def draw_lot() -> str:
         host.save()
         return draw
 
-#adds lot to group and saves the group
 def add_to_group(lot: str):
+    '''Adds the given lot to the current group lots, displays a message indicating which lot was drawn'''
     host = get_host()
     if host.group_lots == "":
         host.group_lots += lot
     else:
         host.group_lots += " " + lot
     host.save()
-    add_line_to_log("[" + lot + "] added to group.")
+    add_line_to_log(formatLots(lot) + " was drawn.")
 
 def add_to_player_lots(playerName: str, lotOrLots: str):
+    '''Adds the given lot string to the given player's lots.'''
     player = get_players().get(name=playerName)
     if player.lots == "":
         player.lots += lotOrLots
     else:
         player.lots += " " + lotOrLots
     player.save()
-
-    lotsList = lotOrLots.split()
 
 def can_draw():
     currentNumLots = count_lots(get_host().group_lots)
@@ -100,20 +102,23 @@ def can_draw():
             return True
     return False
 
-#move group lots to selected player, is playerName is None: lot group is discarded
 def claim_lots(playerName: str):
-    add_line_to_log(playerName + " claimed [" + get_host().group_lots.replace(" ", "][") + "].")
+    '''Moves lots from the current group to the given player, or delete them if None is given, logging this action.'''
     host = Host.objects.all().first()
     if playerName:
         player = Player.objects.get(name=playerName)
         player.money -= player.current_bid
         player.save()
         add_to_player_lots(player.name, host.group_lots)
+        logLine = playerName + " claimed " + formatLots(host.group_lots) + " for " + formatMoney(player.current_bid) + "."
+    else:
+        logLine = "Lacking any bids, the group " + formatLots(host.group_lots) + " was tossed into the harbor."
     host.group_lots = ""
     host.save()
+    add_line_to_log(logLine)
 
-#sets host.chooser
 def select_first_chooser():
+    '''Sets the chooser by least money, picking randomly on first day/ties, logs this'''
     host = Host.objects.all().first()
     players = Player.objects.all().order_by("money")
     if host.day == 1:
@@ -125,6 +130,7 @@ def select_first_chooser():
     add_line_to_log("The first chooser is " + get_host().chooser + ".")
 
 def start_day():
+    '''Selects the first chooser, and sets up for choosing phase, logging such.'''
     add_line_to_log("Start choosing for day " + str(get_host().day) + ".")
     select_first_chooser()
     host = get_host()
@@ -138,16 +144,19 @@ def start_day():
         p.save()
 
 def move_to_next_bidder():
+    '''Changes the bidder to the next viable option, logging all skipped players and the next viable bidder.'''
     host = get_host()
     while True:
         host.bidder = get_next_indexed_player(get_players().get(name=host.bidder)).name
         bidderLotCount = count_lots(get_players().get(name=host.bidder).lots)
         if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
             break
+        add_line_to_log(host.bidder + "cannot bid.")
     host.save()
     add_line_to_log(get_host().bidder + "is now bidding.")
 
 def is_remaining_bidder() -> bool:
+    '''returns if anyone is left who can bid'''
     host = get_host()
     hypothBidder = get_players().get(name=host.bidder)
     while True:
@@ -160,16 +169,18 @@ def is_remaining_bidder() -> bool:
     return False
 
 def move_to_next_chooser():
+    '''Sets the chooser to the nex viable option in turn order, logging viable chooser and skipped choosers'''
     host = get_host()
     while True:
         host.chooser = get_next_indexed_player(get_players().get(name=host.chooser)).name
         if count_lots(get_players().get(name=host.chooser).lots) < 5: 
             break
+        add_line_to_log(host.chooser + " has too many lots to choose.")
     host.save()
     add_line_to_log(get_host().chooser + "is now choosing.")
 
-#tallies scores for players, empties all players' lots
 def score_day():
+    '''Distributes rewards, updates pyramids, and empties players' lots, logging such'''
     #calculate costs
     players = get_players()
     playerCosts = dict()
@@ -231,6 +242,10 @@ def score_day():
                 currentRewardIndex += len(levelPlayers)
 
 def end_bidding_phase():
+    '''Claims lots for highest bidder, gives lots to last non-full player if applicable, scores players, determines which phase comes next.
+    If the day is over, increments day and starts new one.
+    If the day continues, selects next chooser.
+    Logs all this.'''
     players = get_players()
     highestBid = 0
     highestPlayerName = None
@@ -271,6 +286,7 @@ def end_bidding_phase():
         move_to_next_chooser()
 
 def end_choosing_phase():
+    '''Changes phase and sets up for bidding, logs the phase change.'''
     add_line_to_log("Start bidding.")
     host = get_host()
     host.phase = Phase.BIDDING
@@ -283,30 +299,45 @@ def end_choosing_phase():
         p.save()
 
 def add_money(name: str, amount: int):
+    '''Increases the given player's money by the given amount.'''
     p = Player.objects.get(name=name)
     p.money += amount
     p.save()
 
 def advance_step():
+    '''Increments game's step counter.'''
     host = get_host()
     host.steps += 1
     host.save()
 
 def add_line_to_log(line: str):
+    '''Add the given string to game logs'''
     host = get_host()
     host.log = line + "\n" + host.log
     host.save()
 
+def formatLots(lots: str) -> str:
+    '''formats lots into a loggable group'''
+    return "[" + "][".join(lots.split()) + "]"
+
+def formatMoney(money: int) -> str:
+    '''formats money for logging'''
+    sign = "-" if money < 0 else ""
+    return sign + florin + str(abs(money))
+
 def cumulative_pyramid_score(level: int) -> int:
+    '''Returns money rewarded for being on the given pyramid tier independent of ranking.'''
     if level == 7: return 20
     elif level == 6: return 10
     elif level == 5: return 5
     return 0
 
 def highest_bid() -> int:
+    '''Finds highest current bid among players.'''
     return Player.objects.all().order_by("-current_bid").first().current_bid
 
 def cost_of_lots(lots: str) -> int:
+    '''Determines numeric value of lots string'''
     lotList = lots.split()
     sum = 0
     for lot in lotList:
@@ -317,6 +348,7 @@ def get_players() -> models.Manager[Player]:
     return Player.objects.all().order_by("id")
 
 def get_next_indexed_player(player: Player) -> Player:
+    '''Returns the player next in turn order (next highest id)'''
     players = get_players()
     next = False
     for p in players:

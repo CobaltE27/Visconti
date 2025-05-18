@@ -12,7 +12,7 @@ const Phase = {
     BIDDING: "bidding",
     END: "end"
 };
-const florin = "&fnof;";
+const florin = "ƒ";
 const checkPeriod = 1000;
 var steps = -1;
 var failCounter = 0;
