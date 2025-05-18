@@ -281,8 +281,9 @@ async function join(event){
             body: submitData,
             headers: {'X-CSRFToken': csrfToken},
         });
-    } catch (e)
-    {
+        if (!response.ok)
+            throw Error()
+    } catch (e) {
         nameInput.value = "";
         nameInput.removeAttribute("disabled");
         joinButton.removeAttribute("disabled");
@@ -295,10 +296,16 @@ async function start(event){
     document.querySelector("#start").setAttribute("disabled", true);
     let url = "http://" + hostIP + ":8000/start/";
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const response = await fetch(url, {
+    try {
+        const response = await fetch(url, {
         method: "POST",
         headers: {'X-CSRFToken': csrfToken},
-    });
+        });
+        if (!response.ok)
+            throw Error()
+    } catch (e) {
+        document.querySelector("#start").removeAttribute("disabled");
+    }
 }
 
 async function choose(event, drawOrBid){
