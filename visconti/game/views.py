@@ -52,7 +52,7 @@ def set_name(request):
         # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s4 f5")
         newPlayer = models.Player.objects.create(name=newName, current_bid=0)
         newPlayer.save()
-        return HttpResponse()
+    return HttpResponse()
 
 def start_match(request):
     if request.method == "POST":
@@ -60,6 +60,7 @@ def start_match(request):
         pCount = len(models.get_players())
         if pCount >= 3 and pCount <= 6:
             models.start_day()
+    return HttpResponse()
 
 def receive_choice(request):
     if request.method == "POST":
@@ -72,7 +73,6 @@ def receive_choice(request):
             else: #move to bidding
                 if host.group_lots != "":
                     models.end_choosing_phase()
-
     return HttpResponse()
 
 def receive_bid(request):
@@ -81,7 +81,7 @@ def receive_bid(request):
         bid = int(request.POST["bid"])
         player = models.get_players().get(name=name)
         host = models.get_host()
-        if host.bidder == name and bid > models.highest_bid() and bid <= player.money:
+        if host.bidder == name and (bid > models.highest_bid() or bid == 0) and bid <= player.money:
             player.current_bid = bid
             player.save()
         
