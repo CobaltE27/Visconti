@@ -208,7 +208,7 @@ def score_day():
         portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(highestPlayers), len(rewards))]) // len(highestPlayers)
         for pName in highestPlayers:
             add_money(pName, portion)
-            add_line_to_log(pName + "is awarded " + format_money(portion) + "(" + format_rank_index(currentRewardIndex) + ").")
+            add_line_to_log(pName + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + ").")
             # print("r:" + pName + str(portion))
         currentRewardIndex += len(highestPlayers)
         for highest in highestPlayers:
@@ -228,7 +228,8 @@ def score_day():
         for good in goodsNames:
             reward = cumulative_pyramid_score(getattr(p, good))
             p.money += reward
-            add_line_to_log(p.name + " is awarded " + format_money(reward) + " for their investment in " + good + ".")
+            if (reward > 0):
+                add_line_to_log(p.name + " is awarded " + format_money(reward) + " for their investment in " + good + ".")
             # print("pc:" + p.name + str(cumulative_pyramid_score(getattr(p, good))))
         p.save()
     #relative pyramid points
@@ -245,7 +246,7 @@ def score_day():
                     portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
                     for winnerName in levelPlayers:
                         add_money(winnerName, portion)
-                        add_line_to_log(winnerName + "is awarded " + format_money(portion) + "(" + format_rank_index(currentRewardIndex) + " in " + good + " investment).")
+                        add_line_to_log(winnerName + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + " in " + good + " investment).")
                         # print("pr:" + winner + str(portion))
                 currentRewardIndex += len(levelPlayers)
     
