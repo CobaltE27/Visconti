@@ -103,7 +103,7 @@ h2, #main-board h1 {
 #bid-boxes {
     display: flex;
     flex-direction: row;
-    gap: 1rem;
+    justify-content: space-around;
 }
 .bid-box {
     display: flex;
@@ -114,6 +114,10 @@ h2, #main-board h1 {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    
+    * {
+        width: 5rem;
+    }
 }
 
 #three-rank, #four-rank, #five-rank, #six-rank {
@@ -124,6 +128,6 @@ h2, #main-board h1 {
     }
 }
 
-.bid:before, .player-money:before, .money:before {
+.player-money:before, .money:before {
     content: "ƒ";
 }

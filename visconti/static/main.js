@@ -242,12 +242,16 @@ function updateMainBoardContent(data){
                 if (bid && bName){
                     if (bName.textContent == currentBidderName) {
                         bid.textContent = "Bidding";
+                        bid.classList.remove("money");
                         passedBidder = true;
                     } else if (passedBidder){
                         bid.textContent = "";
+                        bid.classList.remove("money");
                     } else {
-                        if (bid.textContent == 0)
+                        if (bid.textContent == 0) {
                             bid.textContent = "pass";
+                            bid.classList.remove("money");
+                        }
                     }
                 } else { //this user is the current bidder, psace occupied by a form
                     passedBidder = true;
