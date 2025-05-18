@@ -60,9 +60,9 @@
             <div id="pyramids">
                 <table class="cloth">
                     <tbody>
-                        <tr><th>20</th> <td></td></tr>
-                        <tr><th>10</th> <td></td></tr>
-                        <tr><th>5</th> <td></td></tr>
+                        <tr><th class="money">20</th> <td></td></tr>
+                        <tr><th class="money">10</th> <td></td></tr>
+                        <tr><th class="money">5</th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
@@ -72,9 +72,9 @@
                 </table>
                 <table class="dye">
                     <tbody>
-                        <tr><th>20</th> <td></td></tr>
-                        <tr><th>10</th> <td></td></tr>
-                        <tr><th>5</th> <td></td></tr>
+                        <tr><th class="money">20</th> <td></td></tr>
+                        <tr><th class="money">10</th> <td></td></tr>
+                        <tr><th class="money">5</th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
@@ -84,9 +84,9 @@
                 </table>
                 <table class="furs">
                     <tbody>
-                        <tr><th>20</th> <td></td></tr>
-                        <tr><th>10</th> <td></td></tr>
-                        <tr><th>5</th> <td></td></tr>
+                        <tr><th class="money">20</th> <td></td></tr>
+                        <tr><th class="money">10</th> <td></td></tr>
+                        <tr><th class="money">5</th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
@@ -96,9 +96,9 @@
                 </table>
                 <table class="grain">
                     <tbody>
-                        <tr><th>20</th> <td></td></tr>
-                        <tr><th>10</th> <td></td></tr>
-                        <tr><th>5</th> <td></td></tr>
+                        <tr><th class="money">20</th> <td></td></tr>
+                        <tr><th class="money">10</th> <td></td></tr>
+                        <tr><th class="money">5</th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
@@ -108,9 +108,9 @@
                 </table>
                 <table class="spice">
                     <tbody>
-                        <tr><th>20</th> <td></td></tr>
-                        <tr><th>10</th> <td></td></tr>
-                        <tr><th>5</th> <td></td></tr>
+                        <tr><th class="money">20</th> <td></td></tr>
+                        <tr><th class="money">10</th> <td></td></tr>
+                        <tr><th class="money">5</th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
                         <tr><th></th> <td></td></tr>
@@ -123,8 +123,9 @@
                 <h2>Scoring Rules:</h2>
                 <p>
                     All scoring is evaluated at the end of the day. In the event of a tie when ranking players, players add the rewards and divide reward 
-                    money evenly, rounding down (for example: if 1st awards 10 money, second awards 5 money, third awards 1 money, and Al and Bo tie for first,
-                    each gets 7 money (<code>(5 + 10) / 2</code>), and whoever got third gets 1.)
+                    money evenly, rounding down (for example: if 1st awards <span class="money">10</span>, second awards <span class="money">5</span>, 
+                    third awards <span class="money">1</span>, and Al and Bo tie for first, then Al and Bo
+                    each get <span class="money">7</span> (<code>(5 + 10) / 2</code>), and whoever got third gets <span class="money">1</span>.)
                 </p>
                 <p>
                     Each lot is marked with its numeric value. Players are ranked by the combined value of their lots. Money is awarded to players by
@@ -171,7 +172,8 @@
                     Players are then awarded additional points based on their investment in particular goods. When the day ends, players move up one level per lot 
                     matching the color of a given investment table (note that gold doesn't match any investment table).
 
-                    The player at the highest level in the investment table for a good gets 10 money, and the second highest gets 5, no matter how low they are in the table.
+                    The player at the highest level in the investment table for a good gets <span class="money">10</span>, and the second highest gets 
+                    <span class="money">5</span>, no matter how low they are in the table.
                 </p>
                 <p>
                     Seperately, all players in one of the top 3 levels of an investment table get money equal to the number marking that level.

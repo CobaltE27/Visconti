@@ -57,6 +57,7 @@ h2, #main-board h1 {
 .furs { background-color: #663c29; border-color: #8A5138;}
 .lot {
     display: flex;
+    min-width: 3rem;
     width: 3rem;
     height: 5rem;
     font-weight: bold;
@@ -89,7 +90,7 @@ h2, #main-board h1 {
     border-width: 1px;
 }
 #pyramids table tbody tr th {
-    width: 1.5rem;
+    width: 2rem;
 }
 #pyramids table tbody tr td {
     text-align: center;
@@ -113,4 +114,16 @@ h2, #main-board h1 {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+#three-rank, #four-rank, #five-rank, #six-rank {
+    text-align: end;
+
+    tbody tr td:before {
+        content: "ƒ";
+    }
+}
+
+.bid:before, .player-money:before, .money:before {
+    content: "ƒ";
 }

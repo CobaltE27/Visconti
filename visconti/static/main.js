@@ -12,6 +12,7 @@ const Phase = {
     BIDDING: "bidding",
     END: "end"
 };
+const florin = "&fnof;";
 
 var isHost = document.querySelector("#isHost").value;
 var hostIP = document.querySelector("#hostIP").value;
@@ -94,7 +95,7 @@ function updateMainBoardStatics(data){
     phaseDisplay.textContent = data.host[0].fields.phase;
     mainBoard.querySelector(".lot-container").replaceChildren(...makeLotsFromString(data.host[0].fields.group_lots));
     deckCounter.textContent = countLotsFromString(data.host[0].fields.deck);
-    
+
     let pCount = data.players.length;
     threeRank.classList.add("hide");
     fourRank.classList.add("hide");
