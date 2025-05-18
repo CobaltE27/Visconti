@@ -118,8 +118,10 @@ def select_first_chooser():
         player = players.first()
     host.chooser = player.name
     host.save()
+    add_line_to_log("The first chooser is " + get_host().chooser + ".")
 
 def start_day():
+    add_line_to_log("Start choosing for day " + str(get_host().day) + ".")
     select_first_chooser()
     host = get_host()
     players = get_players()
@@ -139,6 +141,7 @@ def move_to_next_bidder():
         if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
             break
     host.save()
+    add_line_to_log(get_host().bidder + "is now bidding.")
 
 def is_remaining_bidder() -> bool:
     host = get_host()
@@ -159,6 +162,7 @@ def move_to_next_chooser():
         if count_lots(get_players().get(name=host.chooser).lots) < 5: 
             break
     host.save()
+    add_line_to_log(get_host().chooser + "is now choosing.")
 
 #tallies scores for players, empties all players' lots
 def score_day():
