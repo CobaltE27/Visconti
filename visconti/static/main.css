@@ -44,7 +44,7 @@ h2, #main-board h1 {
     padding: 0.5rem;
     height: 20rem;
 
-    * {
+    span {
         display: block;
     }
 }

@@ -28,7 +28,7 @@ class Host(models.Model):
     chooser = models.CharField(max_length=100, default="")
     bidder = models.CharField(max_length=100, default="")
     steps = models.IntegerField(default=0)
-    log = models.TextField(default="Match opened.\n")
+    log = models.TextField(default="<span><strong>Match opened.</strong></span>")
 
 class Player(models.Model):
     name = models.CharField(max_length=100, unique=True)
