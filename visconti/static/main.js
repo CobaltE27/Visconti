@@ -153,9 +153,9 @@ function updatePyramids(data){
     for (let good of goods){
         let pyramidRows = pyramidsArea.querySelectorAll("table." + good + " tbody tr td");
         for (let row of pyramidRows)
-            row.textContent = "";
+            row.innerHTML = "";
         for (let pData of data.players){
-            pyramidRows[pyramidRows.length - 1 - pData.fields[good]].textContent += pData.fields.name + " ";
+            pyramidRows[pyramidRows.length - 1 - pData.fields[good]].innerHTML += pData.fields.name + "<br>";
         }
     }
 }
