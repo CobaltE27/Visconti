@@ -23,7 +23,7 @@ h2, #main-board h1 {
 #status-bar {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-evenly;
 }
 #bottom-info {
     display: flex;
