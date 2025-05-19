@@ -98,9 +98,12 @@ h2, #main-board h1 {
 .lot-container {
     display: flex;
     flex-direction: row;
+    align-items: center;
     padding: 0.5rem;
     gap: 0.5rem;
     border: 4px solid gray;
+    background-color: white;
+    height: 5rem;
 }
 .shiny .sheen-bar {
   background: white;
@@ -177,4 +180,8 @@ h2, #main-board h1 {
 
 .player-money:before, .money:before {
     content: "ƒ";
+}
+
+.me {
+    background-color: lightgray;
 }

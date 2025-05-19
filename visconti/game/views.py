@@ -48,7 +48,7 @@ def set_name(request):
         newName = request.POST["name"]
         if not models.get_players().filter(name=newName).exists():
             newPlayer = models.Player.objects.create(name=newName, current_bid=0)
-            # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s4 f5")
+            # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s5")
             newPlayer.save()
             models.advance_step()
             models.add_line_to_log(models.format_player_name(newName) + " joined!")

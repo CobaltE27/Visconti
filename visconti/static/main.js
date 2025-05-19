@@ -142,6 +142,8 @@ function displayPlayers(data){
         newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
         newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
         newPlayerBox.querySelector(".lot-container").replaceChildren(...makeLotsFromString(pData.fields.lots));
+        if (username == pData.fields.name)
+            newPlayerBox.classList.add("me");
 
         newChildren.push(newPlayerBox);
     }
@@ -256,6 +258,8 @@ function updateMainBoardContent(data){
                     bidElt.querySelector(".player-name").textContent = data.players[i].fields.name;
                     bidElt.querySelector(".bid").textContent = data.players[i].fields.current_bid;
                 }
+                if (username == data.players[i].fields.name)
+                    bidElt.classList.add("me");
 
                 bidElements.push(bidElt);
             } while (i != chooserIndex)
