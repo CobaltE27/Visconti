@@ -108,7 +108,7 @@ def claim_lots(playerName: str):
         player.money -= player.current_bid
         player.save()
         add_to_player_lots(player.name, host.group_lots)
-        logLine = playerName + " claimed " + format_lots(host.group_lots) + " for " + format_money(player.current_bid) + "."
+        logLine = format_player_name(playerName) + " claimed " + format_lots(host.group_lots) + " for " + format_money(player.current_bid) + "."
     else:
         logLine = "Lacking any bids, the group " + format_lots(host.group_lots) + " was tossed into the harbor."
     host.group_lots = ""
@@ -125,11 +125,11 @@ def select_first_chooser():
         player = players.first()
     host.chooser = player.name
     host.save()
-    add_line_to_log("The first chooser is " + get_host().chooser + ".")
+    add_line_to_log("The first chooser is " + format_player_name(get_host().chooser) + ".")
 
 def start_day():
     '''Selects the first chooser, and sets up for choosing phase, logging the current day and such.'''
-    add_line_to_log("Start choosing for day " + str(get_host().day) + ".")
+    add_line_to_log("Start choosing for day " + str(get_host().day) + ".", True)
     select_first_chooser()
     host = get_host()
     players = get_players()
@@ -150,11 +150,11 @@ def move_to_next_bidder():
         bidderLotCount = count_lots(get_players().get(name=host.bidder).lots)
         if bidderLotCount < 5 and count_lots(host.group_lots) <= 5 - bidderLotCount:
             break
-        linesToLog.append(host.bidder + " cannot bid.")
+        linesToLog.append(format_player_name(host.bidder) + " cannot bid.")
     host.save()
     for l in linesToLog:
         add_line_to_log(l)
-    add_line_to_log(get_host().bidder + " is now bidding.")
+    add_line_to_log(format_player_name(get_host().bidder) + " is now bidding.")
 
 def is_remaining_bidder() -> bool:
     '''returns if anyone is left who can bid'''
@@ -177,11 +177,11 @@ def move_to_next_chooser():
         host.chooser = get_next_indexed_player(get_players().get(name=host.chooser)).name
         if count_lots(get_players().get(name=host.chooser).lots) < 5: 
             break
-        linesToLog.append(host.chooser + " has too many lots to choose.")
+        linesToLog.append(format_player_name(host.chooser) + " has too many lots to choose.")
     host.save()
     for l in linesToLog:
         add_line_to_log(l)
-    add_line_to_log(get_host().chooser + " is now choosing.")
+    add_line_to_log(format_player_name(get_host().chooser) + " is now choosing.")
 
 def score_day():
     '''Distributes rewards, updates pyramids, and empties players' lots, logging such'''
@@ -208,7 +208,7 @@ def score_day():
         portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(highestPlayers), len(rewards))]) // len(highestPlayers)
         for pName in highestPlayers:
             add_money(pName, portion)
-            add_line_to_log(pName + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + ").")
+            add_line_to_log(format_player_name(pName) + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + ").")
             # print("r:" + pName + str(portion))
         currentRewardIndex += len(highestPlayers)
         for highest in highestPlayers:
@@ -229,7 +229,7 @@ def score_day():
             reward = cumulative_pyramid_score(getattr(p, good))
             p.money += reward
             if (reward > 0):
-                add_line_to_log(p.name + " is awarded " + format_money(reward) + " for their investment in " + good + ".")
+                add_line_to_log(format_player_name(p.name) + " is awarded " + format_money(reward) + " for their investment in " + good + ".")
             # print("pc:" + p.name + str(cumulative_pyramid_score(getattr(p, good))))
         p.save()
     #relative pyramid points
@@ -246,13 +246,13 @@ def score_day():
                     portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
                     for winnerName in levelPlayers:
                         add_money(winnerName, portion)
-                        add_line_to_log(winnerName + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + " in " + good + ").")
+                        add_line_to_log(format_player_name(winnerName) + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + " in " + good + ").")
                         # print("pr:" + winner + str(portion))
                 currentRewardIndex += len(levelPlayers)
     
     playerMoneyTotals = ""
     for p in get_players():
-        playerMoneyTotals += p.name + ": " + format_money(p.money) + ", "
+        playerMoneyTotals += format_player_name(p.name) + ": " + format_money(p.money) + ", "
     add_line_to_log("After scoring: " + playerMoneyTotals[:len(playerMoneyTotals) - 2] + ".")
 
 def end_bidding_phase():
@@ -269,7 +269,7 @@ def end_bidding_phase():
             highestPlayerName = p.name
     claim_lots(highestPlayerName)
 
-    add_line_to_log("Bidding is over.")
+    add_line_to_log("Bidding is over.", True)
 
     players = get_players()
     maxedCount = 0
@@ -284,8 +284,8 @@ def end_bidding_phase():
         while count_lots(get_players().get(name=leftoverPlayer).lots) < 5 and count_lots(get_host().deck) > 0:
             drawnLot = draw_lot()
             add_to_player_lots(leftoverPlayer, drawnLot)
-            add_line_to_log(leftoverPlayer + " gets " + format_lots(drawnLot) + "for free.")
-        add_line_to_log("Auctioning is over for the day.")
+            add_line_to_log(format_player_name(leftoverPlayer) + " gets " + format_lots(drawnLot) + "for free.")
+        add_line_to_log("Auctioning is over for the day.", True)
 
         score_day()
 
@@ -294,7 +294,7 @@ def end_bidding_phase():
         if (host.day == 3):
             host.phase = Phase.END
             host.save()
-            add_line_to_log("The game is over.")
+            add_line_to_log("The game is over.", True)
         else:
             host.day += 1
             host.save()
@@ -303,12 +303,12 @@ def end_bidding_phase():
         host = get_host()
         host.phase = Phase.CHOOSING
         host.save()
-        add_line_to_log("Begin choosing lots to auction.")
+        add_line_to_log("Begin choosing lots to auction.", True)
         move_to_next_chooser()
 
 def end_choosing_phase():
     '''Changes phase and sets up for bidding, logs the phase change.'''
-    add_line_to_log("Start bidding.")
+    add_line_to_log("Start bidding.", True)
     host = get_host()
     host.phase = Phase.BIDDING
     #bidding setup
@@ -335,9 +335,9 @@ def add_line_to_log(line: str, bold:bool=False):
     '''Add the given string to game logs'''
     host = get_host()
     if bold:
-        host.log = format_bold(line) + "\n" + host.log
+        host.log = "<span>" + format_bold(line) + "</span>" + host.log
     else:
-        host.log = line + "\n" + host.log
+        host.log = "<span>" + line + "</span>" + host.log
     host.save()
 
 def format_lots(lots: str) -> str:
@@ -358,6 +358,11 @@ def format_rank_index(index: int) -> str:
 
 def format_bold(input: str) -> str:
     '''Formats a string as bold for logging'''
+    return "<strong>" + input + "</strong>"
+
+def format_player_name(name: str) -> str:
+    '''Formats player's name for logging'''
+    return format_bold(name)
 
 def cumulative_pyramid_score(level: int) -> int:
     '''Returns money rewarded for being on the given pyramid tier independent of ranking.'''

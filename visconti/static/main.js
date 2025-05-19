@@ -118,7 +118,7 @@ function updateMainBoardStatics(data){
     phaseDisplay.textContent = data.host[0].fields.phase;
     mainBoard.querySelector(".lot-container").replaceChildren(...makeLotsFromString(data.host[0].fields.group_lots));
     deckCounter.textContent = countLotsFromString(data.host[0].fields.deck);
-    logArea.textContent = data.host[0].fields.log;
+    logArea.innerHTML = data.host[0].fields.log;
 
     let pCount = data.players.length;
     threeRank.classList.add("hide");

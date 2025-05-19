@@ -1,5 +1,6 @@
 * {
     font-family: sans-serif;
+    overflow-wrap: anywhere;
 }
 
 h2, #main-board h1 {
@@ -10,6 +11,7 @@ h2, #main-board h1 {
 #main-divider {
     display: flex;
     flex-direction: row;
+    max-width: 100%;
 }
 #left-side {
     display: flex;
@@ -17,6 +19,7 @@ h2, #main-board h1 {
     gap: 1.5rem;
     padding: 0 1rem;
     flex-grow: 1;
+    max-width: 70%;
 }
 #status-bar {
     display: flex;
@@ -32,8 +35,18 @@ h2, #main-board h1 {
     width: 60%;
 }
 #log-area {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
     width: 40%;
-    resize: none;
+    overflow: auto;
+    background-color: lightgrey;
+    padding: 0.5rem;
+    height: 20rem;
+
+    * {
+        display: block;
+    }
 }
 #players {
     display: flex;
@@ -45,6 +58,7 @@ h2, #main-board h1 {
     border-top: 2px solid gray;
     border-bottom: 2px solid gray;
     padding: 0.5rem;
+    overflow-wrap: anywhere;
 }
 
 .hide {
@@ -142,6 +156,7 @@ h2, #main-board h1 {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    overflow-wrap: anywhere;
 }
 .bid-form {
     display: flex;

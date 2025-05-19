@@ -51,7 +51,7 @@ def set_name(request):
             # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s4 f5")
             newPlayer.save()
             models.advance_step()
-            models.add_line_to_log(newName + " joined!")
+            models.add_line_to_log(models.format_player_name(newName) + " joined!")
             return HttpResponse()
         return HttpResponse(status=403)
 
@@ -60,7 +60,7 @@ def start_match(request):
         print("start")#start the game
         pCount = len(models.get_players())
         if pCount >= 3 and pCount <= 6:
-            models.add_line_to_log("Match started.")
+            models.add_line_to_log("Match started.", True)
             models.start_day()
             models.advance_step()
             return HttpResponse()
@@ -92,9 +92,9 @@ def receive_bid(request):
             player.current_bid = bid
             player.save()
             if (not bid == 0):
-                models.add_line_to_log(player.name + " bid " + models.format_money(bid) + ".")
+                models.add_line_to_log(models.format_player_name(player.name) + " bid " + models.format_money(bid) + ".")
             else:
-                models.add_line_to_log(player.name + " passed.")
+                models.add_line_to_log(models.format_player_name(player.name) + " passed.")
         
             if (host.chooser == name or not models.is_remaining_bidder()): # chooser made last bid
                 models.end_bidding_phase()
