@@ -24,6 +24,7 @@ h2, #main-board h1 {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
+    border-bottom: 6px double gray;
 }
 #bottom-info {
     display: flex;
@@ -159,11 +160,13 @@ h2, #main-board h1 {
     flex-direction: column;
     gap: 0.5rem;
     overflow-wrap: anywhere;
+    padding: 1rem;
 }
 .bid-form {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    padding: 1rem;
     
     * {
         width: 6rem;
