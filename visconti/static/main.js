@@ -253,13 +253,13 @@ function updateMainBoardContent(data){
                     bidInput.max = data.players[i].fields.money;
                     bidElt.querySelector("form .bid-button").addEventListener("click", (event) => submitBid(event, false));
                     bidElt.querySelector("form .pass-button").addEventListener("click", (event) => submitBid(event, true));
+                    bidElt.classList.add("me");
                 } else {
                     bidElt = instantiate(bidBoxPrefab);
                     bidElt.querySelector(".player-name").textContent = data.players[i].fields.name;
                     bidElt.querySelector(".bid").textContent = data.players[i].fields.current_bid;
                 }
-                if (username == data.players[i].fields.name)
-                    bidElt.classList.add("me");
+                    
 
                 bidElements.push(bidElt);
             } while (i != chooserIndex)
