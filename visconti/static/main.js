@@ -137,7 +137,7 @@ function updateMainBoardStatics(data){
 
 function displayPlayers(data){
     let newChildren = [];
-    for (let pData of data.players){
+    for (const [i, pData] of data.players.entries()){
         let newPlayerBox = instantiate(playerBoxPrefab);
         newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
         newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
@@ -146,6 +146,17 @@ function displayPlayers(data){
             newPlayerBox.classList.add("me");
 
         newChildren.push(newPlayerBox);
+
+        if ((data.host[0].fields.phase == Phase.BIDDING || data.host[0].fields.phase == Phase.CHOOSING) && pData.fields.name == data.host[0].fields.chooser){
+            let nextIndicator = document.createElement("span");
+            if (i < data.players.length - 1){
+                nextIndicator.textContent = "↓ " + data.players[i + 1].fields.name + " chooses next ↓";
+                newChildren.push(nextIndicator);
+            } else { //current playerbox is last in order
+                nextIndicator.textContent = "↓ " + data.players[0].fields.name + " chooses next ↓";
+                newChildren.unshift(nextIndicator);
+            }
+        }
     }
     playersArea.replaceChildren(...newChildren);
 }
