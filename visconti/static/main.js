@@ -116,7 +116,10 @@ function updateStartButton(data){
 function updateMainBoardStatics(data){
     dayCounter.textContent = data.host[0].fields.day;
     phaseDisplay.textContent = data.host[0].fields.phase;
-    mainBoard.querySelector(".lot-container").replaceChildren(...makeLotsFromString(data.host[0].fields.group_lots));
+    let groupLots = makeLotsFromString(data.host[0].fields.group_lots);
+    if (groupLots.length > 0 && data.host[0].fields.phase == Phase.CHOOSING)
+        groupLots[groupLots.length - 1].classList.add("new-lot");
+    mainBoard.querySelector(".lot-container").replaceChildren(...groupLots);
     deckCounter.textContent = countLotsFromString(data.host[0].fields.deck);
     logArea.innerHTML = data.host[0].fields.log;
 
@@ -142,6 +145,10 @@ function displayPlayers(data){
         newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
         newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
         newPlayerBox.querySelector(".lot-container").replaceChildren(...makeLotsFromString(pData.fields.lots));
+        let lotValue = valueOfLotsString(pData.fields.lots);
+        if (lotValue != 0)
+            newPlayerBox.querySelector(".value-display").innerHTML = "<strong>" + lotValue + "</strong> total ship value";
+
         if (username == pData.fields.name)
             newPlayerBox.classList.add("me");
 
@@ -458,4 +465,9 @@ function countLotsFromString(lots){
     if (lots == "")
         return 0;
     return lots.split(" ").length;
+}
+
+function valueOfLotsString(lots){
+    let numeric = lots.replaceAll(/[a-zA-Z]/g, "");
+    return numeric.split(" ").reduce((partial, next) => partial + Number(next), 0);
 }

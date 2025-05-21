@@ -216,6 +216,9 @@ h2, #main-board h1 {
     }
 }
 
+.new-lot {
+    animation: appear-right forwards 0.5s;
+}
 @keyframes appear-right {
     from {
         transform: translate(100%, 0px);
