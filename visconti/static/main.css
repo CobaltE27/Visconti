@@ -96,6 +96,9 @@ h2, #main-board h1 {
 .dye { background-color: #0a5207; border-color: #10810B;}
 .spice { background-color: #4d1f3f; border-color: #712E5D;}
 .furs { background-color: #663c29; border-color: #8A5138;}
+abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
+    border-width: 0px;
+}
 .lot {
     min-width: 3rem;
     width: 3rem;

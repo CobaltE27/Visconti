@@ -342,7 +342,24 @@ def add_line_to_log(line: str, bold:bool=False):
 
 def format_lots(lots: str) -> str:
     '''formats lots into a loggable group'''
-    return "[" + "][".join(lots.split()) + "]"
+    lotsList = lots.split()
+    goodClass = ""
+    for (i, lot) in enumerate(lotsList):
+        if "G" in lot:
+            goodClass = "gold"
+        elif "g" in lot:
+            goodClass = Good.GRAIN
+        elif "c" in lot:
+            goodClass = Good.CLOTH
+        elif "d" in lot:
+            goodClass = Good.DYE
+        elif "s" in lot:
+            goodClass = Good.SPICE
+        elif "f" in lot:
+            goodClass = Good.FURS
+        lotsList[i] = '<abbr class="' + goodClass + '">[' + lot + ']</abbr>'
+    print(lotsList)
+    return "".join(lotsList)
 
 FLORIN = "ƒ"
 def format_money(money: int) -> str:
