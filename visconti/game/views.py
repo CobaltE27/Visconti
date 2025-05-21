@@ -112,7 +112,7 @@ def set_ready(request):
         player.save()
         if models.get_players().exclude(ready=True).count() == 0: #all players are ready
             models.end_waiting_phase()
-            models.advance_step()
+        models.advance_step()
         return HttpResponse()
 
 def delete_data():

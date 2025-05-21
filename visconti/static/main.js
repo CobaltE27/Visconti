@@ -209,15 +209,8 @@ function updateMainBoardContent(data){
                 }
             if (winnerList.length == 1)
                 winnerDisplay.textContent = winnerList[0] + " wins!";
-            else {
-                for (let i = 0; i < winnerList.length; i++){
-                    if (i == winnerList.length - 1)
-                        winnerDisplay.textContent += "and " + winnerList[i];
-                    else
-                        winnerDisplay.textContent += winnerList[i] + ", ";
-                    winnerDisplay.textContent += " tied!";
-                }
-            }
+            else
+                winnerDisplay.textContent = stringifyList(winnerList) + " tied!";
             winnerDisplay.classList.remove("hide");
             break;
         case Phase.CHOOSING: {
@@ -326,8 +319,18 @@ function updateMainBoardContent(data){
             chooseDisplay.classList.add("hide");
             bidView.classList.add("hide");
             waitingForm.classList.remove("hide");
-            readyButton.classList.add("active");
-            readyButton.removeAttribute("disabled");
+            let unreadyPlayerNames = [];
+            for (let pData of data.players) {
+                if (!pData.fields.ready){
+                    unreadyPlayerNames.push(pData.fields.name);
+
+                    if (pData.fields.name == username){
+                            readyButton.classList.add("active");
+                            readyButton.removeAttribute("disabled");
+                    }
+                }
+            }
+            document.querySelector("#waiting-list").textContent = "Waiting on " + stringifyList(unreadyPlayerNames) + ".";
     }
 }
 
@@ -513,4 +516,19 @@ function countLotsFromString(lots){
 function valueOfLotsString(lots){
     let numeric = lots.replaceAll(/[a-zA-Z]/g, "");
     return numeric.split(" ").reduce((partial, next) => partial + Number(next), 0);
+}
+
+function stringifyList(list){
+    if (list.length == 1)
+        return list[0];
+    if (list.length == 2)
+        return list[0] + " and " + list[1];
+    let result = ""
+    for (let i = 0; i < list.length; i++){
+        if (i == list.length - 1)
+            result += "and " + list[i];
+        else
+            result += list[i] + ", ";
+    }
+    return result;
 }

@@ -364,7 +364,6 @@ def format_lots(lots: str) -> str:
         elif "f" in lot:
             goodClass = Good.FURS
         lotsList[i] = '<abbr class="' + goodClass + '">[' + lot + ']</abbr>'
-    print(lotsList)
     return "".join(lotsList)
 
 FLORIN = "ƒ"
