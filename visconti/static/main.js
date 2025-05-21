@@ -254,6 +254,7 @@ function updateMainBoardContent(data){
                     bidElt.querySelector("form .bid-button").addEventListener("click", (event) => submitBid(event, false));
                     bidElt.querySelector("form .pass-button").addEventListener("click", (event) => submitBid(event, true));
                     bidElt.classList.add("me");
+                    bidElt.classList.add("active");
                 } else {
                     bidElt = instantiate(bidBoxPrefab);
                     bidElt.querySelector(".player-name").textContent = data.players[i].fields.name;
