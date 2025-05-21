@@ -110,8 +110,9 @@ def set_ready(request):
         player = models.get_players().get(name=name)
         player.ready = True
         player.save()
-        if not models.get_players().filter(ready=False).exists(): #all players are ready
+        if models.get_players().exclude(ready=True).count() == 0: #all players are ready
             models.end_waiting_phase()
+            models.advance_step()
         return HttpResponse()
 
 def delete_data():
