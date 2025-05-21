@@ -20,6 +20,18 @@ h2, #main-board h1 {
     padding: 0 1rem;
     flex-grow: 1;
 }
+#choose-form {
+    padding: 1rem;
+    width: fit-content;
+}
+#choose-form form {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    * {
+        font-size: 1.5rem;
+    }
+}
 #status-bar {
     display: flex;
     flex-direction: row;
@@ -190,7 +202,7 @@ h2, #main-board h1 {
 }
 
 .active {
-    animation: high-light alternate infinite 0.5s;
+    animation: high-light alternate infinite 1s;
 }
 @keyframes high-light {
     from {
@@ -199,4 +211,12 @@ h2, #main-board h1 {
     to {
         box-shadow: 0px 0px 0px 10px gray;
     }
+}
+
+@keyframes appear-right {
+    from {
+        transform: translate(100%, 0px);
+        opacity: 0;
+    }
+    to {}
 }
