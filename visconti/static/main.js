@@ -323,10 +323,12 @@ async function join(event){
     nameInput.setAttribute("disabled", true);
     joinButton.setAttribute("disabled", true);
     let submitData = new FormData();
-    submitData.append("name", document.querySelector("#username").value);
+    submitData.append("name", nameInput.value);
     let url = "http://" + hostIP + ":8000/setname/";
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
+        if (!nameInput.value.match(/^\w*$/)) //only allows word characters
+            throw Error()
         const response = await fetch(url, {
             method: "POST",
             body: submitData,
@@ -389,13 +391,16 @@ async function submitBid(event, passed){
     let input = bidBoxes.querySelector(".bid-form form label .bid-input");
     let bidButton = bidBoxes.querySelector(".bid-form form .bid-button");
     let passButton = bidBoxes.querySelector(".bid-form form .pass-button");
+    let bid = 0;
+    if (!passed) {
+        if (!input.value.match(/^\d*$/))
+            return
+        bid = Number(input.value);
+    }
+
     input.setAttribute("disabled", true);
     bidButton.setAttribute("disabled", true);
     passButton.setAttribute("disabled", true);
-
-    let bid = 0;
-    if (!passed)
-        bid = Number(input.value);
 
     let url = "http://" + hostIP + ":8000/bid/";
     let submitData = new FormData();
