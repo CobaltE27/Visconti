@@ -20,11 +20,11 @@ h2, #main-board h1 {
     padding: 0 1rem;
     flex-grow: 1;
 }
-#choose-form {
+#choose-form, #waiting-form {
     padding: 1rem;
     width: fit-content;
 }
-#choose-form form {
+#choose-form form, #waiting-form form{
     display: flex;
     flex-direction: row;
     gap: 1rem;

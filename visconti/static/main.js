@@ -10,7 +10,8 @@ const Phase = {
     JOINING: "joining",
     CHOOSING: "choosing",
     BIDDING: "bidding",
-    END: "end"
+    END: "end",
+    WAITING: "waiting"
 };
 const florin = "ƒ";
 const checkPeriod = 1000;
@@ -43,6 +44,9 @@ var dayCounter = document.querySelector("#day-counter");
 var phaseDisplay = document.querySelector("#phase-display");
 var deckCounter = document.querySelector("#deck-counter");
 var winnerDisplay = document.querySelector("#winner");
+var waitingForm = document.querySelector("#waiting-form");
+var readyButton = document.querySelector("#ready-button");
+readyButton.addEventListener("click", sendReady);
 
 var pyramidsArea = document.querySelector("#pyramids");
 var threeRank = document.querySelector("#three-rank");
@@ -186,11 +190,13 @@ function updateMainBoardContent(data){
             bidView.classList.add("hide");
             chooseDisplay.classList.add("hide");
             chooseForm.classList.add("hide");
+            waitingForm.classList.add("hide");
             break;
         case Phase.END:
             bidView.classList.add("hide");
             chooseDisplay.classList.add("hide");
             chooseForm.classList.add("hide");
+            waitingForm.classList.add("hide");
             document.querySelector("#deck-status").classList.add("hide");
             let winnerList = [];
             let highestMoney = 0;
@@ -248,6 +254,7 @@ function updateMainBoardContent(data){
                 chooseDisplay.classList.remove("hide");
             }
             bidView.classList.add("hide");
+            waitingForm.classList.add("hide");
             break;
         }
         case Phase.BIDDING: {
@@ -314,6 +321,13 @@ function updateMainBoardContent(data){
             bidView.classList.remove("hide");
             break;
         }
+        case Phase.WAITING:
+            chooseForm.classList.add("hide");
+            chooseDisplay.classList.add("hide");
+            bidView.classList.add("hide");
+            waitingForm.classList.remove("hide");
+            readyButton.classList.add("active");
+            readyButton.removeAttribute("disabled");
     }
 }
 
@@ -419,6 +433,30 @@ async function submitBid(event, passed){
         input.removeAttribute("disabled");
         bidButton.removeAttribute("disabled");
         passButton.removeAttribute("disabled");
+    }
+}
+
+async function sendReady(event){
+    event.preventDefault()
+    
+    readyButton.setAttribute("disabled", true);
+    readyButton.classList.remove("active");
+
+    let url = "http://" + hostIP + ":8000/ready/";
+    let submitData = new FormData();
+    submitData.append("username", username);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            body: submitData,
+            headers: {'X-CSRFToken': csrfToken},
+        });
+        if (!response.ok)
+            throw Error()
+    } catch (e) {
+        readyButton.removeAttribute("disabled");
+        readyButton.classList.add("active");
     }
 }
 

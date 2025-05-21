@@ -103,6 +103,16 @@ def receive_bid(request):
             models.advance_step()
             return HttpResponse()
         return HttpResponse(status=403)
+    
+def set_ready(request):
+    if request.method == "POST":
+        name = request.POST["username"]
+        player = models.get_players().get(name=name)
+        player.ready = True
+        player.save()
+        if not models.get_players().filter(ready=False).exists(): #all players are ready
+            models.end_waiting_phase()
+        return HttpResponse()
 
 def delete_data():
     query = models.Host.objects.all()

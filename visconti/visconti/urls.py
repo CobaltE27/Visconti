@@ -27,4 +27,5 @@ urlpatterns = [
     path('start/', views.start_match),
     path('choose/', views.receive_choice),
     path('bid/', views.receive_bid),
+    path('ready/', views.set_ready),
 ]

@@ -9,6 +9,7 @@ class Phase(str, Enum):
     CHOOSING = "choosing"
     BIDDING = "bidding"
     END = "end"
+    WAITING = "waiting"
 
 class Good(str, Enum):
     GRAIN = "grain"
@@ -40,6 +41,7 @@ class Player(models.Model):
     dye = models.IntegerField(default=0, null=False)
     spice = models.IntegerField(default=0, null=False)
     furs = models.IntegerField(default=0, null=False)
+    ready = models.BooleanField(default=False)
 
 def get_shuffled_deck(playerCount: int) -> str:
     '''Returns a space-seperated string containing and amount of lots appropriate for the given number of players'''
@@ -128,7 +130,7 @@ def select_first_chooser():
     add_line_to_log("The first chooser is " + format_player_name(get_host().chooser) + ".")
 
 def start_day():
-    '''Selects the first chooser, and sets up for choosing phase, logging the current day and such.'''
+    '''Selects the first chooser, and sets up for choosing phase, clears players' lots, logging the current day and such.'''
     add_line_to_log("Start choosing for day " + str(get_host().day) + ".", True)
     select_first_chooser()
     host = get_host()
@@ -139,6 +141,7 @@ def start_day():
     host.save()
     for p in get_players():
         p.lots = ""
+        p.ready = False
         p.save()
 
 def move_to_next_bidder():
@@ -184,7 +187,7 @@ def move_to_next_chooser():
     add_line_to_log(format_player_name(get_host().chooser) + " is now choosing.")
 
 def score_day():
-    '''Distributes rewards, updates pyramids, and empties players' lots, logging such'''
+    '''Distributes rewards, updates pyramids, logging such'''
     #calculate costs
     players = get_players()
     playerCosts = dict()
@@ -222,8 +225,6 @@ def score_day():
         p.dye = min(p.dye + p.lots.count("d"), 7)
         p.spice = min(p.spice + p.lots.count("s"), 7)
         p.furs = min(p.furs + p.lots.count("f"), 7)
-        #clear lots
-        p.lots = ""
         #absolute pyramid points
         for good in goodsNames:
             reward = cumulative_pyramid_score(getattr(p, good))
@@ -296,9 +297,8 @@ def end_bidding_phase():
             host.save()
             add_line_to_log("The game is over.", True)
         else:
-            host.day += 1
+            host.phase = Phase.WAITING
             host.save()
-            start_day()
     else: #more space to fill, go to next chooser for the day
         host = get_host()
         host.phase = Phase.CHOOSING
@@ -318,6 +318,12 @@ def end_choosing_phase():
     for p in get_players():
         p.current_bid = 0
         p.save()
+
+def end_waiting_phase():
+    host = get_host()
+    host.day += 1
+    host.save()
+    start_day()
 
 def add_money(name: str, amount: int):
     '''Increases the given player's money by the given amount.'''
