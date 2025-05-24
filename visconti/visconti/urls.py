@@ -29,3 +29,9 @@ urlpatterns = [
     path('bid/', views.receive_bid),
     path('ready/', views.set_ready),
 ]
+
+# TODO collapse urls
+# TODO persistent users/players leaving
+# TODO delta money
+# TODO score breakdown
+# TODO sounds

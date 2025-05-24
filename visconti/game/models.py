@@ -18,6 +18,11 @@ class Good(str, Enum):
     SPICE = "spice"
     FURS = "furs"
 
+class RewardSources(str, Enum):
+    RANK = "rank"
+    PYRAMID_TOP = "pyramid"
+    PYRAMID_RANK = "pyramid_rank"
+
 # for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
 class Host(models.Model):
@@ -42,6 +47,10 @@ class Player(models.Model):
     spice = models.IntegerField(default=0, null=False)
     furs = models.IntegerField(default=0, null=False)
     ready = models.BooleanField(default=False)
+    money_spent = models.IntegerField(default=0)
+    reward_rank = models.IntegerField(default=0)
+    reward_pyramid = models.IntegerField(default=0)
+    reward_pyramid_rank = models.IntegerField(default=0)
 
 def get_shuffled_deck(playerCount: int) -> str:
     '''Returns a space-seperated string containing and amount of lots appropriate for the given number of players'''
@@ -103,11 +112,12 @@ def can_draw():
     return False
 
 def claim_lots(playerName: str):
-    '''Moves lots from the current group to the given player, or delete them if None is given, logging this action.'''
+    '''Moves lots from the current group to the given player, or delete them if None is given, subtracting bid money and logging this action.'''
     host = Host.objects.all().first()
     if playerName:
         player = Player.objects.get(name=playerName)
         player.money -= player.current_bid
+        player.money_spent += player.current_bid
         player.save()
         add_to_player_lots(player.name, host.group_lots)
         logLine = format_player_name(playerName) + " claimed " + format_lots(host.group_lots) + " for " + format_money(player.current_bid) + "."
@@ -142,6 +152,10 @@ def start_day():
     for p in get_players():
         p.lots = ""
         p.ready = False
+        p.money_spent = 0
+        p.reward_rank = 0
+        p.reward_pyramid = 0
+        p.reward_pyramid_rank = 0
         p.save()
 
 def move_to_next_bidder():
@@ -210,7 +224,7 @@ def score_day():
                 break
         portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(highestPlayers), len(rewards))]) // len(highestPlayers)
         for pName in highestPlayers:
-            add_money(pName, portion)
+            add_money(pName, portion, RewardSources.RANK)
             add_line_to_log(format_player_name(pName) + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + ").")
             # print("r:" + pName + str(portion))
         currentRewardIndex += len(highestPlayers)
@@ -229,6 +243,7 @@ def score_day():
         for good in goodsNames:
             reward = cumulative_pyramid_score(getattr(p, good))
             p.money += reward
+            p.reward_pyramid += reward
             if (reward > 0):
                 add_line_to_log(format_player_name(p.name) + " is awarded " + format_money(reward) + " for their investment in " + good + ".")
             # print("pc:" + p.name + str(cumulative_pyramid_score(getattr(p, good))))
@@ -246,7 +261,7 @@ def score_day():
                 if len(levelPlayers) > 0:
                     portion = sum(levelRewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(levelRewards))]) // len(levelPlayers)
                     for winnerName in levelPlayers:
-                        add_money(winnerName, portion)
+                        add_money(winnerName, portion, RewardSources.PYRAMID_RANK)
                         add_line_to_log(format_player_name(winnerName) + " is awarded " + format_money(portion) + " (" + format_rank_index(currentRewardIndex) + " in " + good + ").")
                         # print("pr:" + winner + str(portion))
                 currentRewardIndex += len(levelPlayers)
@@ -325,10 +340,17 @@ def end_waiting_phase():
     host.save()
     start_day()
 
-def add_money(name: str, amount: int):
+def add_money(name: str, amount: int, source: RewardSources=None):
     '''Increases the given player's money by the given amount.'''
     p = Player.objects.get(name=name)
     p.money += amount
+    if source != None:
+        if source == RewardSources.RANK:
+            p.reward_rank += amount
+        elif source == RewardSources.PYRAMID_RANK:
+            p.reward_pyramid_rank += amount
+        elif source == RewardSources.PYRAMID_TOP:
+            p.reward_pyramid += amount
     p.save()
 
 def advance_step():
