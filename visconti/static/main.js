@@ -47,6 +47,8 @@ var winnerDisplay = document.querySelector("#winner");
 var waitingForm = document.querySelector("#waiting-form");
 var readyButton = document.querySelector("#ready-button");
 readyButton.addEventListener("click", sendReady);
+var playerStatArea = document.querySelector("#player-stat-area");
+var playerStatsPrefab = document.querySelector("#prefab-player-stats");
 
 var pyramidsArea = document.querySelector("#pyramids");
 var threeRank = document.querySelector("#three-rank");
@@ -57,6 +59,8 @@ var sixRank = document.querySelector("#six-rank");
 var logArea = document.querySelector("#log-area");
 
 var lotPrefab = document.querySelector("#prefab-lot");
+
+var playerStats = undefined;
 
 if (isHost == "True"){
     hostIP = "127.0.0.1"
@@ -319,6 +323,7 @@ function updateMainBoardContent(data){
             chooseDisplay.classList.add("hide");
             bidView.classList.add("hide");
             waitingForm.classList.remove("hide");
+            updatePlayerStats(data);
             let unreadyPlayerNames = [];
             for (let pData of data.players) {
                 if (!pData.fields.ready){
@@ -373,6 +378,7 @@ async function start(event){
         });
         if (!response.ok)
             throw Error()
+        playerStats = { days: [] };
     } catch (e) {
         document.querySelector("#start").removeAttribute("disabled");
     }
@@ -531,4 +537,48 @@ function stringifyList(list){
             result += list[i] + ", ";
     }
     return result;
+}
+
+function updatePlayerStats(data){
+    let dayIndex = day - 1;
+    if (typeof playerStats.days[dayIndex] === "undefined") {
+        for (let pData of data.players){
+            playerStats.days[dayIndex][pData.fields.name] = {
+                moneySpent: pData.fields.money_spent,
+                rewardRank: pData.fields.reward_rank,
+                rewardPyramid: pData.fields.reward_pyramid,
+                rewardPyramidRank: pData.fields.reward_pyramid_rank
+            };
+        }
+        console.log(playerStats);
+        let newStatTables = [];
+        for (let pData in players){
+            let statTable = instantiate(playerStatsPrefab);
+            let headRowInner = "<th>" + pData.fields.name + "</th>";
+            let spentRow = document.createElement("tr");
+            spentRow.appendChild(document.createElement("th").textContent = "Spent Money");
+            let rankRow = document.createElement("tr");
+            rankRow.appendChild(document.createElement("th").textContent = "Ship Rank Reward");
+            let pyramidRankRow = document.createElement("tr");
+            pyramidRankRow.appendChild(document.createElement("th").textContent = "Investment Rank Reward");
+            let pyramidRow = document.createElement("tr");
+            pyramidRow.appendChild(document.createElement("th").textContent = "Investment Reward");
+            for (let i = 0; i < playerStats.days.length; i++) {
+                headRowInner += "<th>Day " + (i + 1) + "</th>";
+                spentRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].moneySpent);
+                rankRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].rewardRank);
+                pyramidRankRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].rewardPyramid);
+                pyramidRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].rewardPyramidRank);
+            }
+            statTable.querySelector("thead tr").innerHTML = headRowInner + "<th>Total</th>";
+            //TODO totals
+            let body = statTable.querySelector("tbody");
+            body.appendChild(spentRow);
+            body.appendChild(rankRow);
+            body.appendChild(pyramidRankRow);
+            body.appendChild(pyramidRow);
+            newStatTables.push(statTable);
+        }
+        playerStatArea.replaceChildren(...newStatTables);
+    }
 }
