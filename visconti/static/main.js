@@ -216,6 +216,7 @@ function updateMainBoardContent(data){
             else
                 winnerDisplay.textContent = stringifyList(winnerList) + " tied!";
             winnerDisplay.classList.remove("hide");
+            //TODO display stats
             break;
         case Phase.CHOOSING: {
             const chooser = data.host[0].fields.chooser
@@ -542,6 +543,7 @@ function stringifyList(list){
 function updatePlayerStats(data){
     let dayIndex = day - 1;
     if (typeof playerStats.days[dayIndex] === "undefined") {
+        playerStats.days[dayIndex] = {"day": day}; //necessary prep for further programatically named properties
         for (let pData of data.players){
             playerStats.days[dayIndex][pData.fields.name] = {
                 moneySpent: pData.fields.money_spent,
@@ -552,26 +554,37 @@ function updatePlayerStats(data){
         }
         console.log(playerStats);
         let newStatTables = [];
-        for (let pData in players){
+        for (let pData of data.players){
             let statTable = instantiate(playerStatsPrefab);
             let headRowInner = "<th>" + pData.fields.name + "</th>";
             let spentRow = document.createElement("tr");
-            spentRow.appendChild(document.createElement("th").textContent = "Spent Money");
+            spentRow.appendChild(createEltWithText("th", "Spent Money"));
             let rankRow = document.createElement("tr");
-            rankRow.appendChild(document.createElement("th").textContent = "Ship Rank Reward");
+            rankRow.appendChild(createEltWithText("th", "Ship Rank Reward"));
             let pyramidRankRow = document.createElement("tr");
-            pyramidRankRow.appendChild(document.createElement("th").textContent = "Investment Rank Reward");
+            pyramidRankRow.appendChild(createEltWithText("th", "Investment Rank Reward"));
             let pyramidRow = document.createElement("tr");
-            pyramidRow.appendChild(document.createElement("th").textContent = "Investment Reward");
+            pyramidRow.appendChild(createEltWithText("th", "Investment Reward"));
+            let spentSum = 0;
+            let rankSum = 0;
+            let pyrRankSum = 0;
+            let pyrSum = 0;
             for (let i = 0; i < playerStats.days.length; i++) {
                 headRowInner += "<th>Day " + (i + 1) + "</th>";
-                spentRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].moneySpent);
-                rankRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].rewardRank);
-                pyramidRankRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].rewardPyramid);
-                pyramidRow.appendChild(document.createElement("td").textContent = playersStats.days[dayIndex][pData.fields.name].rewardPyramidRank);
+                spentRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].moneySpent));
+                spentSum += Number(playerStats.days[dayIndex][pData.fields.name].moneySpent);
+                rankRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].rewardRank));
+                rankSum += Number(playerStats.days[dayIndex][pData.fields.name].rewardRank);
+                pyramidRankRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].rewardPyramidRank));
+                pyrRankSum += Number(playerStats.days[dayIndex][pData.fields.name].rewardPyramidRank);
+                pyramidRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].rewardPyramid));
+                pyrSum += Number(playerStats.days[dayIndex][pData.fields.name].rewardPyramid);
             }
+            spentRow.appendChild(createEltWithText("td", spentSum));
+            rankRow.appendChild(createEltWithText("td", rankSum));
+            pyramidRankRow.appendChild(createEltWithText("td", pyrRankSum));
+            pyramidRow.appendChild(createEltWithText("td", pyrSum));
             statTable.querySelector("thead tr").innerHTML = headRowInner + "<th>Total</th>";
-            //TODO totals
             let body = statTable.querySelector("tbody");
             body.appendChild(spentRow);
             body.appendChild(rankRow);
@@ -581,4 +594,10 @@ function updatePlayerStats(data){
         }
         playerStatArea.replaceChildren(...newStatTables);
     }
+}
+
+function createEltWithText(tagName, text){
+    let elt = document.createElement(tagName);
+    elt.textContent = text;
+    return elt;
 }
