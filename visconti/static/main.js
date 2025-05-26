@@ -378,8 +378,7 @@ async function start(event){
             headers: {'X-CSRFToken': csrfToken},
         });
         if (!response.ok)
-            throw Error()
-        playerStats = { days: [] };
+            throw Error();
     } catch (e) {
         document.querySelector("#start").removeAttribute("disabled");
     }
@@ -542,6 +541,8 @@ function stringifyList(list){
 
 function updatePlayerStats(data){
     let dayIndex = day - 1;
+    if (typeof playerStats === "undefined")
+        playerStats = { days: [] };
     if (typeof playerStats.days[dayIndex] === "undefined") {
         playerStats.days[dayIndex] = {"day": day}; //necessary prep for further programatically named properties
         for (let pData of data.players){
