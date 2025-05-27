@@ -214,16 +214,38 @@ abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
     gap: 0.5rem;
     overflow-wrap: anywhere;
     padding: 1rem;
+    .player-name {
+        border-bottom: 2px solid gray;
+    }
 }
 .bid-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
     padding: 1rem;
     
-    * {
+    form {
         width: 6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        button {
+            width: 100%;
+            border: 1px solid gray;
+            border-radius: 2px;
+        }
+        input {
+            width: 55%;
+        }
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            font-weight: bold;
+            font-size: 1rem;
+        }
     }
+}
+.bid-button {
+    background-color: lightgreen;
 }
 
 #three-rank, #four-rank, #five-rank, #six-rank {

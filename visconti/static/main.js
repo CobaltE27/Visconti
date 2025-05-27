@@ -271,12 +271,12 @@ function updateMainBoardContent(data){
                 let bidElt = undefined;
                 if (data.players[i].fields.name == data.host[0].fields.bidder && username == data.host[0].fields.bidder){ //user is the bidder
                     bidElt = instantiate(bidFormPrefab);
-                    let bidInput = bidElt.querySelector("form label .bid-input");
+                    let bidInput = bidElt.querySelector(".bid-input");
                     bidInput.min = highestBid + 1;
                     bidInput.value = highestBid + 1;
                     bidInput.max = data.players[i].fields.money;
-                    bidElt.querySelector("form .bid-button").addEventListener("click", (event) => submitBid(event, false));
-                    bidElt.querySelector("form .pass-button").addEventListener("click", (event) => submitBid(event, true));
+                    bidElt.querySelector(".bid-button").addEventListener("click", (event) => submitBid(event, false));
+                    bidElt.querySelector(".pass-button").addEventListener("click", (event) => submitBid(event, true));
                     bidElt.classList.add("me");
                     bidElt.classList.add("active");
                 } else {
@@ -413,9 +413,9 @@ async function choose(event, drawOrBid){
 
 async function submitBid(event, passed){
     event.preventDefault();
-    let input = bidBoxes.querySelector(".bid-form form label .bid-input");
-    let bidButton = bidBoxes.querySelector(".bid-form form .bid-button");
-    let passButton = bidBoxes.querySelector(".bid-form form .pass-button");
+    let input = bidBoxes.querySelector(".bid-input");
+    let bidButton = bidBoxes.querySelector(".bid-button");
+    let passButton = bidBoxes.querySelector(".pass-button");
     let bid = 0;
     if (!passed) {
         if (!input.value.match(/^\d*$/))
