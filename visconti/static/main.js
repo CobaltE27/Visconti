@@ -200,7 +200,6 @@ function updateMainBoardContent(data){
             bidView.classList.add("hide");
             chooseDisplay.classList.add("hide");
             chooseForm.classList.add("hide");
-            waitingForm.classList.add("hide");
             document.querySelector("#deck-status").classList.add("hide");
             let winnerList = [];
             let highestMoney = 0;
@@ -216,7 +215,9 @@ function updateMainBoardContent(data){
             else
                 winnerDisplay.textContent = stringifyList(winnerList) + " tied!";
             winnerDisplay.classList.remove("hide");
-            //TODO display stats
+            readyButton.classList.add("hide");
+            updatePlayerStats(data);
+            waitingForm.classList.remove("hide");
             break;
         case Phase.CHOOSING: {
             const chooser = data.host[0].fields.chooser
@@ -337,6 +338,7 @@ function updateMainBoardContent(data){
                 }
             }
             document.querySelector("#waiting-list").textContent = "Waiting on " + stringifyList(unreadyPlayerNames) + ".";
+            break;
     }
 }
 
@@ -572,14 +574,14 @@ function updatePlayerStats(data){
             let pyrSum = 0;
             for (let i = 0; i < playerStats.days.length; i++) {
                 headRowInner += "<th>Day " + (i + 1) + "</th>";
-                spentRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].moneySpent));
-                spentSum += Number(playerStats.days[dayIndex][pData.fields.name].moneySpent);
-                rankRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].rewardRank));
-                rankSum += Number(playerStats.days[dayIndex][pData.fields.name].rewardRank);
-                pyramidRankRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].rewardPyramidRank));
-                pyrRankSum += Number(playerStats.days[dayIndex][pData.fields.name].rewardPyramidRank);
-                pyramidRow.appendChild(createEltWithText("td", playerStats.days[dayIndex][pData.fields.name].rewardPyramid));
-                pyrSum += Number(playerStats.days[dayIndex][pData.fields.name].rewardPyramid);
+                spentRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].moneySpent));
+                spentSum += Number(playerStats.days[i][pData.fields.name].moneySpent);
+                rankRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].rewardRank));
+                rankSum += Number(playerStats.days[i][pData.fields.name].rewardRank);
+                pyramidRankRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].rewardPyramidRank));
+                pyrRankSum += Number(playerStats.days[i][pData.fields.name].rewardPyramidRank);
+                pyramidRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].rewardPyramid));
+                pyrSum += Number(playerStats.days[i][pData.fields.name].rewardPyramid);
             }
             spentRow.appendChild(createEltWithText("td", spentSum));
             rankRow.appendChild(createEltWithText("td", rankSum));
