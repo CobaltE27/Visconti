@@ -102,7 +102,7 @@ h2, #main-board h1 {
 .grain, .cloth, .dye, .spice, .furs {
     color: white;
 }
-.grain, .cloth, .dye, .spice, .furs, .gold {
+.grain, .cloth, .dye, .spice, .furs, .gold, .ghost {
     box-sizing: border-box;
     border-width: 0.4rem;
     border-style: solid;
@@ -130,6 +130,12 @@ abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
     span {
         font-family: serif;
     }
+}
+.ghost { 
+    color: rgba(0, 0, 0, 0); 
+    background-color: rgba(0, 0, 0, 0); 
+    border-color: gray; 
+    border-style: dashed;
 }
 .lot-container {
     display: flex;
