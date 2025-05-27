@@ -36,6 +36,5 @@ urlpatterns = [
 # TODO sounds
 
 # TODO ghost cards slot marking
-# TODO display days out of total
 # TODO animate numbers changing
 # TODO clarify colors vs. goods

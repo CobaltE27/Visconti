@@ -122,7 +122,7 @@ function updateStartButton(data){
 }
 
 function updateMainBoardStatics(data){
-    dayCounter.textContent = data.host[0].fields.day;
+    dayCounter.textContent = data.host[0].fields.day + " / 3";
     phaseDisplay.textContent = data.host[0].fields.phase;
     let groupLots = makeLotsFromString(data.host[0].fields.group_lots);
     if (groupLots.length > 0 && data.host[0].fields.phase == Phase.CHOOSING)
