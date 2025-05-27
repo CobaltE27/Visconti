@@ -421,6 +421,11 @@ async function submitBid(event, passed){
         if (!input.value.match(/^\d*$/))
             return
         bid = Number(input.value);
+
+        if (bid < input.min || bid > input.max){
+            input.value = input.min;
+            return;
+        }
     }
 
     input.setAttribute("disabled", true);

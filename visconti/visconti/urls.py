@@ -36,8 +36,6 @@ urlpatterns = [
 # TODO sounds
 
 # TODO ghost cards slot marking
-# TODO color bid buttons, increase gap
-# TODO prevent 0-bid in gui
 # TODO display days out of total
 # TODO animate numbers changing
 # TODO clarify colors vs. goods
