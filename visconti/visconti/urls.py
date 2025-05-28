@@ -34,7 +34,7 @@ urlpatterns = [
 # TODO persistent users/players leaving
 # TODO sounds
 # TODO variableize css colors
+# TODO total by day
 
 # TODO animate numbers changing
-# TODO clarify colors vs. goods
 # TODO dock or tide animations

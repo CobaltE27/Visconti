@@ -112,12 +112,51 @@ h2, #main-board h1 {
     border-width: 0.4rem;
     border-style: solid;
 }
-.gold { background-color: gold; border-color: rgb(255, 166, 0); border-style: outset;}
-.grain { background-color: #234ba1;  border-color: #2C5FCB;}
-.cloth { background-color: #a31a1a; border-color: #CF2121;}
-.dye { background-color: #0a5207; border-color: #10810B;}
-.spice { background-color: #4d1f3f; border-color: #712E5D;}
-.furs { background-color: #663c29; border-color: #8A5138;}
+.gold { 
+    background-color: gold; 
+    border-color: rgb(255, 166, 0); 
+    border-style: outset;
+}
+.grain { 
+    background-color: #234ba1;  
+    border-color: #2C5FCB;
+
+    thead tr .table-title {
+        background-color: #2C5FCB;
+    }
+}
+.cloth { 
+    background-color: #a31a1a; 
+    border-color: #CF2121;
+    
+    thead tr .table-title {
+        background-color: #CF2121;
+    }
+}
+.dye { 
+    background-color: #0a5207; 
+    border-color: #10810B;
+
+    thead tr .table-title {
+        background-color: #10810B;
+    }
+}
+.spice { 
+    background-color: #4d1f3f; 
+    border-color: #712E5D;
+
+    thead tr .table-title {
+        background-color: #712E5D;
+    }
+}
+.furs { 
+    background-color: #663c29; 
+    border-color: #8A5138;
+
+    thead tr .table-title {
+        background-color: #8A5138;
+    }
+}
 abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
     border-width: 0px;
 }
