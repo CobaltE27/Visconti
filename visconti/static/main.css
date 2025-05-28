@@ -132,6 +132,7 @@ abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
     }
 }
 .ghost { 
+    /* border-width: 0.2rem; */
     color: rgba(0, 0, 0, 0); 
     background-color: rgba(0, 0, 0, 0); 
     border-color: gray; 

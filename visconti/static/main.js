@@ -152,7 +152,7 @@ function displayPlayers(data){
         let newPlayerBox = instantiate(playerBoxPrefab);
         newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
         newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
-        newPlayerBox.querySelector(".lot-container").replaceChildren(...makeLotsFromString(pData.fields.lots));
+        newPlayerBox.querySelector(".lot-container").replaceChildren(...makeLotsFromString(pData.fields.lots, 5));
         let lotValue = valueOfLotsString(pData.fields.lots);
         if (lotValue != 0)
             newPlayerBox.querySelector(".value-display").innerHTML = "<strong>" + lotValue + "</strong> total ship value";
@@ -483,39 +483,43 @@ function instantiate(element){
     return instance;
 }
 
-function makeLotsFromString(lots){
+function makeLotsFromString(lots, outOf = 0){
     let lotElements = [];
-    if (lots == "")
-        return lotElements;
-
-    let lotStrings = lots.split(" ");
-    for (let lotString of lotStrings){
-        let lotElement = instantiate(lotPrefab);
-        switch (lotString[0]) {
-            case "g":
-                lotElement.classList.add(Good.GRAIN);
-                break;
-            case "c":
-                lotElement.classList.add(Good.CLOTH);
-                break;
-            case "d":
-                lotElement.classList.add(Good.DYE);
-                break;
-            case "s":
-                lotElement.classList.add(Good.SPICE);
-                break;
-            case "f":
-                lotElement.classList.add(Good.FURS);
-                break;
-            case "G":
-                lotElement.classList.add(Good.GOLD);
-                break;
+    if (lots != "") {
+        let lotStrings = lots.split(" ");
+        for (let lotString of lotStrings){
+            let lotElement = instantiate(lotPrefab);
+            switch (lotString[0]) {
+                case "g":
+                    lotElement.classList.add(Good.GRAIN);
+                    break;
+                case "c":
+                    lotElement.classList.add(Good.CLOTH);
+                    break;
+                case "d":
+                    lotElement.classList.add(Good.DYE);
+                    break;
+                case "s":
+                    lotElement.classList.add(Good.SPICE);
+                    break;
+                case "f":
+                    lotElement.classList.add(Good.FURS);
+                    break;
+                case "G":
+                    lotElement.classList.add(Good.GOLD);
+                    break;
+            }
+            let value = lotString.substring(1);
+            lotElement.querySelector("span").textContent = value;
+            if (Number(value) >= 5)
+                lotElement.classList.add("shiny");
+            lotElements.push(lotElement);
         }
-        let value = lotString.substring(1);
-        lotElement.querySelector("span").textContent = value;
-        if (Number(value) >= 5)
-            lotElement.classList.add("shiny");
-        lotElements.push(lotElement);
+    }
+    while (lotElements.length < outOf){
+        let ghost = instantiate(lotPrefab);
+        ghost.classList.add("ghost");
+        lotElements.push(ghost);
     }
     return lotElements;
 }
