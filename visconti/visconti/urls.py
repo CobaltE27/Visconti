@@ -32,9 +32,9 @@ urlpatterns = [
 
 # TODO collapse urls
 # TODO persistent users/players leaving
-# TODO delta money
 # TODO sounds
+# TODO variableize css colors
 
-# TODO ghost cards slot marking
 # TODO animate numbers changing
 # TODO clarify colors vs. goods
+# TODO dock or tide animations

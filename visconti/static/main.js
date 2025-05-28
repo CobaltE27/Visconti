@@ -152,6 +152,27 @@ function displayPlayers(data){
         let newPlayerBox = instantiate(playerBoxPrefab);
         newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
         newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
+        let newDeltaMoney = newPlayerBox.querySelector(".delta-money");
+        switch (phase) {
+            case Phase.WAITING:
+            case Phase.END: {
+                let deltaValue = pData.fields.reward_rank + pData.fields.reward_pyramid + pData.fields.reward_pyramid_rank - pData.fields.money_spent;
+                newDeltaMoney.textContent = stringifyDeltaMoney(deltaValue);
+                if (deltaValue > 0)
+                    newDeltaMoney.classList.add("gain");
+                else
+                    newDeltaMoney.classList.add("loss");
+                break;
+            }
+            case Phase.BIDDING:
+            case Phase.CHOOSING:
+                newDeltaMoney.classList.add("loss");
+                newDeltaMoney.textContent = stringifyDeltaMoney(-pData.fields.money_spent);
+                break;
+            case Phase.JOINING:
+                newDeltaMoney.textContent = "";
+        }
+
         newPlayerBox.querySelector(".lot-container").replaceChildren(...makeLotsFromString(pData.fields.lots, 5));
         let lotValue = valueOfLotsString(pData.fields.lots);
         if (lotValue != 0)
@@ -612,4 +633,12 @@ function createEltWithText(tagName, text){
     let elt = document.createElement(tagName);
     elt.textContent = text;
     return elt;
+}
+
+function stringifyDeltaMoney(delta){
+    if (Number(delta) < 0)
+        return String(delta);
+    else if (Number(delta) == 0)
+        return "";
+    return "+" + String(delta);
 }
