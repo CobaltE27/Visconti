@@ -238,6 +238,7 @@ function updateMainBoardContent(data){
             winnerDisplay.classList.remove("hide");
             readyButton.classList.add("hide");
             updatePlayerStats(data);
+            waitingForm.querySelector("#waiting-list").classList.add("hide");
             waitingForm.classList.remove("hide");
             break;
         case Phase.CHOOSING: {
