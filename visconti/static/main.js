@@ -591,6 +591,7 @@ function updatePlayerStats(data){
         for (let pData of data.players){
             let statTable = instantiate(playerStatsPrefab);
             let headRowInner = "<th>" + pData.fields.name + "</th>";
+            let footRowInner = "<th></th>";
             let spentRow = document.createElement("tr");
             spentRow.appendChild(createEltWithText("th", "Spent Money"));
             let rankRow = document.createElement("tr");
@@ -604,21 +605,24 @@ function updatePlayerStats(data){
             let pyrRankSum = 0;
             let pyrSum = 0;
             for (let i = 0; i < playerStats.days.length; i++) {
+                let currentStat = playerStats.days[i][pData.fields.name];
                 headRowInner += "<th>Day " + (i + 1) + "</th>";
-                spentRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].moneySpent));
-                spentSum += Number(playerStats.days[i][pData.fields.name].moneySpent);
-                rankRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].rewardRank));
-                rankSum += Number(playerStats.days[i][pData.fields.name].rewardRank);
-                pyramidRankRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].rewardPyramidRank));
-                pyrRankSum += Number(playerStats.days[i][pData.fields.name].rewardPyramidRank);
-                pyramidRow.appendChild(createEltWithText("td", playerStats.days[i][pData.fields.name].rewardPyramid));
-                pyrSum += Number(playerStats.days[i][pData.fields.name].rewardPyramid);
+                footRowInner += "<td>" + stringifyDeltaMoney(currentStat.rewardRank + currentStat.rewardPyramidRank + currentStat.rewardPyramid - currentStat.moneySpent) + "<td>";
+                spentRow.appendChild(createEltWithText("td", currentStat.moneySpent));
+                spentSum += Number(currentStat.moneySpent);
+                rankRow.appendChild(createEltWithText("td", currentStat.rewardRank));
+                rankSum += Number(currentStat.rewardRank);
+                pyramidRankRow.appendChild(createEltWithText("td", currentStat.rewardPyramidRank));
+                pyrRankSum += Number(currentStat.rewardPyramidRank);
+                pyramidRow.appendChild(createEltWithText("td", currentStat.rewardPyramid));
+                pyrSum += Number(currentStat.rewardPyramid);
             }
             spentRow.appendChild(createEltWithText("td", spentSum));
             rankRow.appendChild(createEltWithText("td", rankSum));
             pyramidRankRow.appendChild(createEltWithText("td", pyrRankSum));
             pyramidRow.appendChild(createEltWithText("td", pyrSum));
             statTable.querySelector("thead tr").innerHTML = headRowInner + "<th>Total</th>";
+            statTable.querySelector("tfoot tr").innerHTML = footRowInner + "<td>" + stringifyDeltaMoney(rankSum + pyrRankSum + pyrSum - spentSum) + "</td>";
             let body = statTable.querySelector("tbody");
             body.appendChild(spentRow);
             body.appendChild(rankRow);
