@@ -61,6 +61,10 @@ var logArea = document.querySelector("#log-area");
 var lotPrefab = document.querySelector("#prefab-lot");
 
 var playerStats = undefined;
+var dotsStyle = document.head.appendChild(document.createElement("style"));
+dotsStyle.innerHTML = ".in-progress:after { content: \"\" }";
+var dotsCounter = 0;
+setTimeout(animateDots, 500);
 
 if (isHost == "True"){
     hostIP = "127.0.0.1"
@@ -322,6 +326,7 @@ function updateMainBoardContent(data){
                     if (bName.textContent == currentBidderName) {
                         bid.textContent = "Bidding";
                         bid.classList.remove("money");
+                        bid.classList.add("in-progress");
                         passedBidder = true;
                     } else if (passedBidder){
                         bid.textContent = "";
@@ -591,7 +596,7 @@ function updatePlayerStats(data){
         for (let pData of data.players){
             let statTable = instantiate(playerStatsPrefab);
             let headRowInner = "<th>" + pData.fields.name + "</th>";
-            let footRowInner = "<th></th>";
+            let footRowInner = "<th>Net Profit</th>";
             let spentRow = document.createElement("tr");
             spentRow.appendChild(createEltWithText("th", "Spent Money"));
             let rankRow = document.createElement("tr");
@@ -607,7 +612,7 @@ function updatePlayerStats(data){
             for (let i = 0; i < playerStats.days.length; i++) {
                 let currentStat = playerStats.days[i][pData.fields.name];
                 headRowInner += "<th>Day " + (i + 1) + "</th>";
-                footRowInner += "<td>" + stringifyDeltaMoney(currentStat.rewardRank + currentStat.rewardPyramidRank + currentStat.rewardPyramid - currentStat.moneySpent) + "<td>";
+                footRowInner += "<td>" + stringifyDeltaMoney(currentStat.rewardRank + currentStat.rewardPyramidRank + currentStat.rewardPyramid - currentStat.moneySpent) + "</td>";
                 spentRow.appendChild(createEltWithText("td", currentStat.moneySpent));
                 spentSum += Number(currentStat.moneySpent);
                 rankRow.appendChild(createEltWithText("td", currentStat.rewardRank));
@@ -646,4 +651,11 @@ function stringifyDeltaMoney(delta){
     else if (Number(delta) == 0)
         return "";
     return "+" + String(delta);
+}
+
+function animateDots() {
+    dotsCounter = (dotsCounter + 1) % 4;
+    let dots = ".".repeat(dotsCounter) + " ".repeat(3 - dotsCounter);
+    dotsStyle.innerHTML = ".in-progress:after { content: \"" + dots + "\" }";
+    setTimeout(animateDots, 500);
 }

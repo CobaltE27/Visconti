@@ -11,3 +11,26 @@
         transform: translate(0px, -5%) rotate(0deg);
     }
 }
+
+/* .in-progress:after {
+    animation: dot 4s linear infinite forwards;
+    display: inline-block;
+}
+
+@keyframes dot {
+    0% {
+        content: "";
+    }
+    25% {
+        content: ".";
+    }
+    50% {
+        content: "..";
+    }
+    75% {
+        content: "...";
+    }
+    100% {
+        content: "...";
+    }
+} */
