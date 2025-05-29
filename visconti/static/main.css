@@ -1,3 +1,22 @@
+:root {
+    --highlight-color: lightgray;
+    --gain-color: #10810B;
+    --loss-color: #CF2121;
+    --gold-color: gold;
+    --gold-bor-color: rgb(255, 166, 0);
+    --grain-color: #234ba1;
+    --grain-bor-color: #2C5FCB;
+    --cloth-color: #a31a1a;
+    --cloth-bor-color: #CF2121;
+    --dye-color: #0a5207;
+    --dye-bor-color: #10810B;
+    --spice-color: #4d1f3f;
+    --spice-bor-color: #712E5D;
+    --furs-color: #663c29;
+    --furs-bor-color: #8A5138;
+    --transparent-color: rgba(0, 0, 0, 0);
+}
+
 * {
     font-family: sans-serif;
     overflow-wrap: anywhere;
@@ -98,8 +117,8 @@ h2, #main-board h1 {
 .delta-money {
     font-size: 1rem;
 }
-.gain { color: #10810B;}
-.loss { color: #CF2121;}
+.gain { color: var(--gain-color);}
+.loss { color: var(--loss-color);}
 
 .hide {
     /* visibility: hidden; */
@@ -116,48 +135,48 @@ h2, #main-board h1 {
     border-style: solid;
 }
 .gold { 
-    background-color: gold; 
-    border-color: rgb(255, 166, 0); 
+    background-color: var(--gold-color); 
+    border-color: var(--gold-bor-color); 
     border-style: outset;
 }
 .grain { 
-    background-color: #234ba1;  
-    border-color: #2C5FCB;
+    background-color: var(--grain-color);  
+    border-color: var(--grain-bor-color);
 
     thead tr .table-title {
-        background-color: #2C5FCB;
+        background-color: var(--grain-bor-color);
     }
 }
 .cloth { 
-    background-color: #a31a1a; 
-    border-color: #CF2121;
+    background-color: var(--cloth-color); 
+    border-color: var(--cloth-bor-color);
     
     thead tr .table-title {
-        background-color: #CF2121;
+        background-color: var(--cloth-bor-color);
     }
 }
 .dye { 
-    background-color: #0a5207; 
-    border-color: #10810B;
+    background-color: var(--dye-color); 
+    border-color: var(--dye-bor-color);
 
     thead tr .table-title {
-        background-color: #10810B;
+        background-color: var(--dye-bor-color);
     }
 }
 .spice { 
-    background-color: #4d1f3f; 
-    border-color: #712E5D;
+    background-color: var(--spice-color); 
+    border-color: var(--spice-bor-color);
 
     thead tr .table-title {
-        background-color: #712E5D;
+        background-color: var(--spice-bor-color);
     }
 }
 .furs { 
-    background-color: #663c29; 
-    border-color: #8A5138;
+    background-color: var(--furs-color); 
+    border-color: var(--furs-bor-color);
 
     thead tr .table-title {
-        background-color: #8A5138;
+        background-color: var(--furs-bor-color);
     }
 }
 abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
@@ -180,8 +199,8 @@ abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
 }
 .ghost { 
     /* border-width: 0.2rem; */
-    color: rgba(0, 0, 0, 0); 
-    background-color: rgba(0, 0, 0, 0); 
+    color: var(--transparent-color); 
+    background-color: var(--transparent-color); 
     border-color: gray; 
     border-style: dashed;
 }
@@ -316,7 +335,7 @@ abbr.gold, abbr.grain, abbr.cloth, abbr.dye, abbr.spice, abbr.furs {
 }
 
 .me {
-    background-color: lightgray;
+    background-color: var(--highlight-color);
 }
 
 .active {
