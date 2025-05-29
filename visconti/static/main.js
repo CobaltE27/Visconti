@@ -382,12 +382,12 @@ async function join(event){
     joinButton.setAttribute("disabled", true);
     let submitData = new FormData();
     submitData.append("name", nameInput.value);
-    let url = "http://" + hostIP + ":8000/setname/";
+    submitData.append("action", "setname");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
         if (!nameInput.value.match(/^\w*$/)) //only allows word characters
             throw Error()
-        const response = await fetch(url, {
+        const response = await fetch(document.URL, {
             method: "POST",
             body: submitData,
             headers: {'X-CSRFToken': csrfToken},
@@ -405,11 +405,13 @@ async function join(event){
 async function start(event){
     event.preventDefault();
     document.querySelector("#start").setAttribute("disabled", true);
-    let url = "http://" + hostIP + ":8000/start/";
+    let submitData = new FormData();
+    submitData.append("action", "start");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
-        const response = await fetch(url, {
+        const response = await fetch(document.URL, {
             method: "POST",
+            body: submitData,
             headers: {'X-CSRFToken': csrfToken},
         });
         if (!response.ok)
@@ -425,13 +427,13 @@ async function choose(event, drawOrBid){
     drawButton.setAttribute("disabled", true);
     startBidButton.setAttribute("disabled", true);
 
-    let url = "http://" + hostIP + ":8000/choose/";
     let submitData = new FormData();
     submitData.append("drawOrBid", drawOrBid);
     submitData.append("username", username);
+    submitData.append("username", "choose");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
-        const response = await fetch(url, {
+        const response = await fetch(document.URL, {
             method: "POST",
             body: submitData,
             headers: {'X-CSRFToken': csrfToken},
@@ -465,13 +467,13 @@ async function submitBid(event, passed){
     bidButton.setAttribute("disabled", true);
     passButton.setAttribute("disabled", true);
 
-    let url = "http://" + hostIP + ":8000/bid/";
     let submitData = new FormData();
     submitData.append("bid", bid);
     submitData.append("username", username);
+    submitData.append("action", "bid");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
-        const response = await fetch(url, {
+        const response = await fetch(document.URL, {
             method: "POST",
             body: submitData,
             headers: {'X-CSRFToken': csrfToken},
@@ -491,12 +493,12 @@ async function sendReady(event){
     readyButton.setAttribute("disabled", true);
     readyButton.classList.remove("active");
 
-    let url = "http://" + hostIP + ":8000/ready/";
     let submitData = new FormData();
     submitData.append("username", username);
+    submitData.append("action", "ready");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
-        const response = await fetch(url, {
+        const response = await fetch(document.URL, {
             method: "POST",
             body: submitData,
             headers: {'X-CSRFToken': csrfToken},
