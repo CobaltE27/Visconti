@@ -23,15 +23,8 @@ urlpatterns = [
     path('host/', views.host_match, name='host_match'),
     path('', views.load_match, name='load_match'),
     path('join/', views.join_match, name='join_match'),
-    path('data/', views.data),
-    path('setname/', views.set_name),
-    path('start/', views.start_match),
-    path('choose/', views.receive_choice),
-    path('bid/', views.receive_bid),
-    path('ready/', views.set_ready),
 ]
 
-# TODO collapse urls
 # TODO persistent users/players leaving
 # TODO sounds
 

@@ -430,7 +430,7 @@ async function choose(event, drawOrBid){
     let submitData = new FormData();
     submitData.append("drawOrBid", drawOrBid);
     submitData.append("username", username);
-    submitData.append("username", "choose");
+    submitData.append("action", "choose");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
         const response = await fetch(document.URL, {
