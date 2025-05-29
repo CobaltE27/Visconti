@@ -20,8 +20,9 @@ from game import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.host_match),
-    path('join/', views.join_match),
+    path('host/', views.host_match, name='host_match'),
+    path('', views.load_match, name='load_match'),
+    path('join/', views.join_match, name='join_match'),
     path('data/', views.data),
     path('setname/', views.set_name),
     path('start/', views.start_match),
@@ -33,7 +34,6 @@ urlpatterns = [
 # TODO collapse urls
 # TODO persistent users/players leaving
 # TODO sounds
-# TODO variableize css colors
 
 # TODO animate numbers changing?
 # TODO dock or tide animations

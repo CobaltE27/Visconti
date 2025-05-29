@@ -77,9 +77,15 @@ else{
 }
 
 async function refreshData(){
-    let url = "http://" + hostIP + ":8000/data/";
+    let submitData = new FormData();
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    submitData.append("action", "data");
     try {
-        const response = await fetch(url);
+        const response = await fetch(document.URL, {
+            method: "POST",
+            body: submitData,
+            headers: {'X-CSRFToken': csrfToken},
+        });
         if (!response.ok){
             throw new Error(response.status);
         }

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 import socket
 from . import models
 from django.http import HttpResponse
@@ -13,23 +13,39 @@ def host_match(request):
     print("hostid: " + str(newHost.id))
     newHost.save()
 
-    context = {
-            "isHost": True, 
-            "hostIP": newHost.localIP,
-            "matchNum": newHost.id,
-        }
-    return render(request, "gamescreen.html", context)
+    return redirect(reverse("load_match") + "?hosting=1")
 
 def join_match(request):
-    localNetHost = models.Host.objects.all()
-    if localNetHost.exists() and models.get_host().phase == models.Phase.JOINING:
-        context = {
-            "isHost": False, 
-            "hostIP": localNetHost.first().localIP,
-        }
-        return render(request, "gamescreen.html", context)
-    else:
-        return HttpResponse("No match started or match in progress!")
+    return redirect(reverse("load_match") + "?hosting=0")
+    
+def load_match(request):
+    if request.method == "GET":
+        hosting = request.GET.get("hosting", "0") == "1"
+        localNetHost = models.Host.objects.all()
+        if localNetHost.exists() and models.get_host().phase == models.Phase.JOINING:
+            context = {
+                "isHost": hosting, 
+                "hostIP": localNetHost.first().localIP,
+            }
+            return render(request, "gamescreen.html", context)
+        else:
+            return HttpResponse("No match started or match in progress!")
+    if request.method == "POST":
+        action = request.POST["action"]
+        if action == "data":
+            return data(request)
+        elif action == "setname":
+            return set_name(request)
+        elif action == "start":
+            return start_match(request)
+        elif action == "choose":
+            return receive_choice(request)
+        elif action == "bid":
+            return receive_bid(request)
+        elif action == "ready":
+            return set_ready(request)
+        return HttpResponse(status=403)
+
 
 def data(request):
     players = models.get_players()
@@ -39,9 +55,6 @@ def data(request):
         "host": model_to_dict(host),
         }
     return HttpResponse(json.dumps(dataJson), content_type="application/json")
-
-def model_to_dict(queryResult):
-    return json.loads(serializers.serialize("json", queryResult))
 
 def set_name(request):
     if request.method == "POST":
@@ -122,3 +135,6 @@ def delete_data():
     query = models.Player.objects.all()
     if query.exists():
         query.delete()
+
+def model_to_dict(queryResult):
+    return json.loads(serializers.serialize("json", queryResult))
