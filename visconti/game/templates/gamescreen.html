@@ -2,6 +2,7 @@
 <meta charset="utf-8">
 {% load static %}
 <link href="{% static 'main.css' %}" rel="stylesheet">
+<link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon"/>
 <title>Visconti</title>
 <script type="module" src="{% static 'main.js' %}"></script>
 <body>
@@ -137,7 +138,7 @@
             </div>
             <div id="bottom-info">
                 <div id="rules">
-                    <h2>Scoring Rules:</h2>
+                    <h2>Scoring Reference:</h2>
                     <p>
                         All scoring is evaluated at the end of the day. In the event of a tie when ranking players, players add the rewards and divide reward 
                         money evenly, rounding down (for example: if 1st awards <span class="money">10</span>, second awards <span class="money">5</span>, 
@@ -145,11 +146,11 @@
                         each get <span class="money">7</span> (<code>(5 + 10) / 2</code>), and whoever got third gets <span class="money">1</span>.)
                     </p>
                     <p>
-                        Each lot is marked with its numeric value. Players are ranked by the combined value of their lots. Money is awarded to players by
-                        their rank relative to other players (You could have a high-value ship of lots and still gain no money because everyone else had yet higher values).
+                        Each lot is marked with its numeric quality. Players are ranked by the combined quality of their lots. Money is awarded to players by
+                        their rank relative to other players (You could have a high-quality ship of lots and still gain no money because everyone else had yet higher qualities).
                     </p>
                     <p>
-                        The table below indicates how much money is awarded based on rank:
+                        The table below indicates how much money is awarded based on quality rank:
                     </p>
                     <table id="three-rank" class="hide">
                         <tbody>
@@ -201,7 +202,49 @@
                     Connecting ...
                 </div>
             </div>
-            
+            <div>
+                <h1>Full Rules</h1>
+                <p>
+                    In Visconti, players compete as the buyers for various merchant houses. During each day of play, players bid on goods brought into the harbor. Each player is paid in florins
+                    for their haul of goods at the end of each day, and the player with the most wealth by the end of the last day wins.
+                </p>
+                <h2>Joining the Game</h2>
+                <p>
+                    To join the game, enter a unique username into the box in the top left, and click "join". If your username is accepted you should see your ship appear on the right soon after.
+                </p>
+                <h2>Playing the Game</h2>
+                <p>
+                    Each day occurs in phases. A player will choose lots from the deck to be auctioned, and then players will bid on those lots. This is repeated until the deck is empty
+                    or all players have full ships. Players are then paid for their haul, ships are emptied, and the next day begins.
+                </p>
+                <h3>Choosing</h3>
+                <p>
+                    At the start of each day, a random chooser is selected among players with the least florins. This player can draw up to 3 lots to create a group for players to bid on.
+                    The chooser cannot create a group no one can bid on, though they can create a group they themselves cannot bid on. A player cannot choose lots if their ship is full. 
+                    Once lots have been drawn to make the group, players begin bidding.
+                    After bidding concludes, choosing continues and a new chooser is picked.
+                </p>
+                <h3>Bidding</h3>
+                <p>
+                    Players bid on the current group of lots in order, left to right in the bidding menu, ending with the chooser. 
+                    Each player either raises the bid or passes, after all players have bid or passed the group is given to the player who bid the highest. If everyone passed, the group is 
+                    tossed into the harbor.
+                    Players may only bid on the group if their ship has room to hold all lots in the group; ships have 5 slots. So, for example, a player which currently has 3 lots in their ship
+                    cannot bid on a group of 3.
+                </p>
+                <h3>Ending the Day</h3>
+                <p>
+                    The day ends either when the deck is out of lots or only a single player remains without a full ship. In the latter case, that player fills their ship with lots from 
+                    the top of the deck for free. Players are then rewarded based on the rules described in the <a href="#rules">Scoring Reference</a> above. After scoring, ships are emptied additional
+                    the next day begins.
+                </p>
+                <h3>Important Notes</h3>
+                <p>
+                    At the start of each day, the deck is shuffled and thinned based on the number of players. In the full deck, there is a single gold lot with quality 10, and lots with
+                    quality 0, 1, 2, 3, 4, 5, and another 5 for each good (the average quality of a lot is approximately 4.5). This totals to 36 lots. 
+                    The deck is thinned before choosing each day, with more lots being removed the fewer players there are. This means not every lot will be available each day.
+                </p>
+            </div>
         </div>
         <div id="players">
             
