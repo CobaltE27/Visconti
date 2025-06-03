@@ -158,6 +158,18 @@ function updateMainBoardStatics(data){
 
 function displayPlayers(data){
     let newChildren = [];
+    let nextChooserIndex = undefined;
+    let afterChooser = false;
+    if ((phase == Phase.BIDDING || phase == Phase.CHOOSING) && countLotsFromString(data.host[0].fields.deck) > 0 && data.players.length > 0){
+        for (let i = 0; data.host[0].fields.chooser != data.players[i].fields.name || !afterChooser; i = (i + 1) % data.players.length){
+            if (afterChooser && countLotsFromString(data.players[i].fields.lots) < 5){
+                nextChooserIndex = i;
+                break;
+            }
+            if (data.players[i].fields.name == data.host[0].fields.chooser)
+                afterChooser = true;
+        }
+    }
     for (const [i, pData] of data.players.entries()){
         let newPlayerBox = instantiate(playerBoxPrefab);
         newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
@@ -191,18 +203,13 @@ function displayPlayers(data){
         if (username == pData.fields.name)
             newPlayerBox.classList.add("me");
 
-        newChildren.push(newPlayerBox);
-
-        if ((data.host[0].fields.phase == Phase.BIDDING || data.host[0].fields.phase == Phase.CHOOSING) && pData.fields.name == data.host[0].fields.chooser){
+        if (typeof nextChooserIndex !== "undefined" && i == nextChooserIndex){
             let nextIndicator = document.createElement("span");
-            if (i < data.players.length - 1){
-                nextIndicator.textContent = "↓ " + data.players[i + 1].fields.name + " chooses next ↓";
-                newChildren.push(nextIndicator);
-            } else { //current playerbox is last in order
-                nextIndicator.textContent = "↓ " + data.players[0].fields.name + " chooses next ↓";
-                newChildren.unshift(nextIndicator);
-            }
+            nextIndicator.textContent = "↓ " + data.players[i].fields.name + " chooses next ↓";
+            newChildren.push(nextIndicator);
         }
+
+        newChildren.push(newPlayerBox);
     }
     playersArea.replaceChildren(...newChildren);
 }
@@ -255,8 +262,9 @@ function updateMainBoardContent(data){
             const chooser = data.host[0].fields.chooser
             if (username == chooser){ //user is choosing
                 let groupCount = countLotsFromString(data.host[0].fields.group_lots);
+                let deckCount = countLotsFromString(data.host[0].fields.deck);
                 let canDraw = false;
-                if (groupCount < 3)
+                if (groupCount < 3 && deckCount > 0)
                     for (let pData of data.players){
                         if (5 - countLotsFromString(pData.fields.lots) >= groupCount + 1)
                             canDraw = true;

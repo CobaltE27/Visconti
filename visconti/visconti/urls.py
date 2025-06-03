@@ -30,7 +30,7 @@ urlpatterns = [
 # TODO favicon
 # TODO full rules
 # TODO break up css
-# TODO make next chooser more accurate, full ship or 0 in deck
+# TODO disallow choosing from empty deck
 # TODO ai players
 
 # TODO animate numbers changing?

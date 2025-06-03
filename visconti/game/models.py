@@ -102,7 +102,8 @@ def add_to_player_lots(playerName: str, lotOrLots: str):
 
 def can_draw():
     currentNumLots = count_lots(get_host().group_lots)
-    if currentNumLots >= 3:
+    deckNumLots = count_lots(get_host().deck)
+    if currentNumLots >= 3 or deckNumLots == 0:
         return False
     players = Player.objects.all()
     for player in players:
