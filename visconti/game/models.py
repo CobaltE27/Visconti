@@ -3,6 +3,7 @@ import random
 from enum import Enum
 from django.db.models import F
 import re
+from . import aiplayer
 
 class Phase(str, Enum):
     JOINING = "joining"
@@ -22,6 +23,10 @@ class RewardSources(str, Enum):
     RANK = "rank"
     PYRAMID_TOP = "pyramid"
     PYRAMID_RANK = "pyramid_rank"
+
+aiDictionary = {
+    "randy": aiplayer.Randy,
+}
 
 # for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
@@ -51,6 +56,7 @@ class Player(models.Model):
     reward_rank = models.IntegerField(default=0)
     reward_pyramid = models.IntegerField(default=0)
     reward_pyramid_rank = models.IntegerField(default=0)
+    ai = models.CharField(max_length=100, default="") #empty string denotes human player
 
 def get_shuffled_deck(playerCount: int) -> str:
     '''Returns a space-seperated string containing and amount of lots appropriate for the given number of players'''

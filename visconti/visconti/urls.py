@@ -30,7 +30,7 @@ urlpatterns = [
 # TODO favicon
 # TODO full rules
 # TODO break up css
-# TODO disallow choosing from empty deck
+# TODO end game graphs
 # TODO ai players
 
 # TODO animate numbers changing?
