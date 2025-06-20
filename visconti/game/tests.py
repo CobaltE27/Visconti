@@ -2,6 +2,7 @@ from django.test import TestCase
 from . import models
 from . import views
 from django.test.client import RequestFactory
+from . import aiplayer
 
 goods = [models.Good.GRAIN, models.Good.CLOTH, models.Good.DYE, models.Good.SPICE, models.Good.FURS]
 # Create your tests here.
@@ -23,10 +24,10 @@ class AllCostTestCase(TestCase):
         third = models.Player.objects.get(name="third")
         fourth = models.Player.objects.get(name="fourth")
 
-        self.assertEqual(first.lots, "")
-        self.assertEqual(second.lots, "")
-        self.assertEqual(third.lots, "")
-        self.assertEqual(fourth.lots, "")
+        self.assertEqual(first.lots, "10x")
+        self.assertEqual(second.lots, "5x 3x")
+        self.assertEqual(third.lots, "1x 1x 1x")
+        self.assertEqual(fourth.lots, "0x")
         for good in goods:
             self.assertEqual(getattr(first, good), 0)
             self.assertEqual(getattr(second, good), 0)
@@ -53,9 +54,9 @@ class AllCostTiesTestCase(TestCase):
         # for p in models.get_players():
         #     print(p.name + str(p.money))
 
-        self.assertEqual(first.lots, "")
-        self.assertEqual(second.lots, "")
-        self.assertEqual(third.lots, "")
+        self.assertEqual(first.lots, "10x")
+        self.assertEqual(second.lots, "5x 5x 5x")
+        self.assertEqual(third.lots, "7x 3x")
         for good in goods:
             self.assertEqual(getattr(first, good), 0)
             self.assertEqual(getattr(second, good), 0)
@@ -139,11 +140,11 @@ class ReceiveBidEndBiddingTestCase(TestCase):
         self.assertEqual(second.money, 15 + (5 * 5))
         self.assertEqual(third.money, 7 + 0 + (5 * 5))
 
-        self.assertEqual(host.phase, models.Phase.CHOOSING)
-        self.assertEqual(host.day, 2)
+        self.assertEqual(host.phase, models.Phase.WAITING)
+        self.assertEqual(host.day, 1)
         self.assertEqual(host.group_lots, "")
-        self.assertEqual(host.chooser, "third")
-        self.assertEqual(models.count_lots(host.deck), 18)
+        self.assertEqual(host.chooser, "second")
+        self.assertEqual(models.count_lots(host.deck), 0)
 
 class ReceiveBidChoosingTestCase(TestCase):
     def setUp(self):
@@ -235,3 +236,28 @@ class NoRemainingBiddersTestCase(TestCase):
 
     def test_no_remaining_bidder(self):
         self.assertFalse(models.is_remaining_bidder())
+
+class RandyTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.CHOOSING, day=1, group_lots="1x 1x 1x", deck="10x", chooser="first", bidder="third")
+        models.Player.objects.create(name="first", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=0, lots="", current_bid=1, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=5, lots="1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0, ai="randy")
+
+    def test_draw(self):
+        aiplayer.Randy.draw(views.data_to_dict()) #just testing that this doesn't result in an error
+
+    def test_bid(self):
+        for c in range(20):
+            self.assertIn(aiplayer.Randy.bid(views.data_to_dict()), [0, 2, 3, 4, 5])
+    
+class RandyMustPassTestCase(TestCase):
+    def setUp(self):
+        models.Host.objects.create(localIP="10.0.0.x", phase=models.Phase.CHOOSING, day=1, group_lots="1x 1x 1x", deck="10x", chooser="first", bidder="third")
+        models.Player.objects.create(name="first", money=0, lots="1x 1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="second", money=5, lots="", current_bid=5, grain=0, cloth=0, dye=0, spice=0, furs=0)
+        models.Player.objects.create(name="third", money=4, lots="1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0, ai="randy")
+
+    def test_bid(self):
+        for c in range(20):
+            self.assertEqual(aiplayer.Randy.bid(views.data_to_dict()), 0)

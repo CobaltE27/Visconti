@@ -48,13 +48,8 @@ def load_match(request):
 
 
 def data(request):
-    players = models.get_players()
-    host = models.Host.objects.all()
-    dataJson = {
-        "players": model_to_dict(players),
-        "host": model_to_dict(host),
-        }
-    return HttpResponse(json.dumps(dataJson), content_type="application/json")
+    dataDict = data_to_dict()
+    return HttpResponse(json.dumps(dataDict), content_type="application/json")
 
 def set_name(request):
     if request.method == "POST":
@@ -138,3 +133,12 @@ def delete_data():
 
 def model_to_dict(queryResult):
     return json.loads(serializers.serialize("json", queryResult))
+
+def data_to_dict():
+    players = models.get_players()
+    host = models.Host.objects.all()
+    dataDict = {
+        "players": model_to_dict(players),
+        "host": model_to_dict(host),
+        }
+    return dataDict
