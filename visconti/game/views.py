@@ -33,95 +33,94 @@ def load_match(request):
     if request.method == "POST":
         action = request.POST["action"]
         if action == "data":
-            return data(request)
+            return data()
         elif action == "setname":
-            return set_name(request)
+            return set_name(request.POST["name"])
         elif action == "start":
-            return start_match(request)
+            return start_match()
         elif action == "choose":
-            return receive_choice(request)
+            return receive_choice(request.POST["username"], request.POST["drawOrBid"])
         elif action == "bid":
-            return receive_bid(request)
+            return receive_bid(request.POST["username"], int(request.POST["bid"]))
         elif action == "ready":
-            return set_ready(request)
+            return set_ready(request.POST["username"])
         return HttpResponse(status=403)
 
 
-def data(request):
+def data():
     dataDict = data_to_dict()
     return HttpResponse(json.dumps(dataDict), content_type="application/json")
 
-def set_name(request):
-    if request.method == "POST":
-        newName = request.POST["name"]
-        if not models.get_players().filter(name=newName).exists():
-            newPlayer = models.Player.objects.create(name=newName, current_bid=0)
-            # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s5")
-            newPlayer.save()
-            models.advance_step()
-            models.add_line_to_log(models.format_player_name(newName) + " joined!")
-            return HttpResponse()
-        return HttpResponse(status=403)
+def set_name(newName: str, ai: str = ""):
+    if not models.get_players().filter(name=newName).exists():
+        newPlayer = models.Player.objects.create(name=newName, current_bid=0, ai=ai)
+        # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s5")
+        newPlayer.save()
+        models.advance_step()
+        models.add_line_to_log(models.format_player_name(newName) + (" joined!" if ai == "" else " was added!"))
+        return HttpResponse()
+    elif ai != "":
+        counter = 0
+        modifiedName = newName + str(counter)
+        while (models.get_players().filter(name=modifiedName).exists()):
+            counter += 1
+            modifiedName = newName + str(counter)
+        newPlayer = models.Player.objects.create(name=modifiedName, current_bid=0, ai=ai)
+        newPlayer.save()
+        models.advance_step()
+        models.add_line_to_log(models.format_player_name(newName) + " was added!")
+    return HttpResponse(status=403)
 
-def start_match(request):
-    if request.method == "POST":
-        print("start")#start the game
-        pCount = len(models.get_players())
-        if pCount >= 3 and pCount <= 6:
-            models.add_line_to_log("Match started.", True)
-            models.start_day()
-            models.advance_step()
-            return HttpResponse()
-        return HttpResponse(status=403)
-
-def receive_choice(request):
-    if request.method == "POST":
-        name = request.POST["username"]
-        drawOrBid = request.POST["drawOrBid"]
-        host = models.get_host()
-        if host.chooser == name:
-            if drawOrBid == "true" and models.can_draw(): #draw
-                models.add_to_group(models.draw_lot())
-                models.advance_step()
-                return HttpResponse()
-            elif host.group_lots != "": #move to bidding
-                models.end_choosing_phase()
-                models.advance_step()
-                return HttpResponse()
-        return HttpResponse(status=403)
-
-def receive_bid(request):
-    if request.method == "POST":
-        name = request.POST["username"]
-        bid = int(request.POST["bid"])
-        player = models.get_players().get(name=name)
-        host = models.get_host()
-        if host.bidder == name and (bid > models.highest_bid() or bid == 0) and bid <= player.money:
-            player.current_bid = bid
-            player.save()
-            if (not bid == 0):
-                models.add_line_to_log(models.format_player_name(player.name) + " bid " + models.format_money(bid) + ".")
-            else:
-                models.add_line_to_log(models.format_player_name(player.name) + " passed.")
-        
-            if (host.chooser == name or not models.is_remaining_bidder()): # chooser made last bid
-                models.end_bidding_phase()
-            else:
-                models.move_to_next_bidder()
-            models.advance_step()
-            return HttpResponse()
-        return HttpResponse(status=403)
-    
-def set_ready(request):
-    if request.method == "POST":
-        name = request.POST["username"]
-        player = models.get_players().get(name=name)
-        player.ready = True
-        player.save()
-        if models.get_players().exclude(ready=True).count() == 0: #all players are ready
-            models.end_waiting_phase()
+def start_match():
+    print("start")#start the game
+    pCount = len(models.get_players())
+    if pCount >= 3 and pCount <= 6:
+        models.add_line_to_log("Match started.", True)
+        models.start_day()
         models.advance_step()
         return HttpResponse()
+    return HttpResponse(status=403)
+
+def receive_choice(name: str, drawOrBid: str ):
+    host = models.get_host()
+    if host.chooser == name:
+        if drawOrBid == "true" and models.can_draw(): #draw
+            models.add_to_group(models.draw_lot())
+            models.advance_step()
+            return HttpResponse()
+        elif host.group_lots != "": #move to bidding
+            models.end_choosing_phase()
+            models.advance_step()
+            return HttpResponse()
+    return HttpResponse(status=403)
+
+def receive_bid(name: str, bid: int):
+    player = models.get_players().get(name=name)
+    host = models.get_host()
+    if host.bidder == name and (bid > models.highest_bid() or bid == 0) and bid <= player.money:
+        player.current_bid = bid
+        player.save()
+        if (not bid == 0):
+            models.add_line_to_log(models.format_player_name(player.name) + " bid " + models.format_money(bid) + ".")
+        else:
+            models.add_line_to_log(models.format_player_name(player.name) + " passed.")
+    
+        if (host.chooser == name or not models.is_remaining_bidder()): # chooser made last bid
+            models.end_bidding_phase()
+        else:
+            models.move_to_next_bidder()
+        models.advance_step()
+        return HttpResponse()
+    return HttpResponse(status=403)
+    
+def set_ready(name: str):
+    player = models.get_players().get(name=name)
+    player.ready = True
+    player.save()
+    if models.get_players().exclude(ready=True).count() == 0: #all players are ready
+        models.end_waiting_phase()
+    models.advance_step()
+    return HttpResponse()
 
 def delete_data():
     query = models.Host.objects.all()
