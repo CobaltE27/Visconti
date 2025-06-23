@@ -4,6 +4,7 @@ from enum import Enum
 from django.db.models import F
 import re
 from . import aiplayer
+from . import views
 
 class Phase(str, Enum):
     JOINING = "joining"
@@ -158,7 +159,7 @@ def start_day():
     host.save()
     for p in get_players():
         p.lots = ""
-        p.ready = False
+        p.ready = (False if p.ai == "" else True)
         p.money_spent = 0
         p.reward_rank = 0
         p.reward_pyramid = 0
@@ -361,10 +362,22 @@ def add_money(name: str, amount: int, source: RewardSources=None):
     p.save()
 
 def advance_step():
-    '''Increments game's step counter.'''
+    '''Increments game's step counter and performs any ai actions'''
     host = get_host()
     host.steps += 1
     host.save()
+    if (host.phase == Phase.BIDDING):
+        activeAI = get_players().filter(name=host.bidder).first().ai
+        if activeAI != "":
+            resp = views.receive_bid(host.bidder, aiDictionary[activeAI].bid(views.data_to_dict()))
+            if resp.status_code != 200:
+                views.receive_bid(host.bidder, 0)
+    if (host.phase == Phase.CHOOSING and get_players().filter(name=host.chooser).first().ai != ""):
+        activeAI = get_players().filter(name=host.chooser).first().ai
+        if activeAI != "":
+            resp = views.receive_choice(host.chooser, aiDictionary[activeAI].bid(views.data_to_dict()))
+            if resp.status_code != 200:
+                views.receive_choice(host.chooser, False)
 
 def add_line_to_log(line: str, bold:bool=False):
     '''Add the given string to game logs'''

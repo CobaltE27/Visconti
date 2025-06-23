@@ -26,6 +26,7 @@ def load_match(request):
             context = {
                 "isHost": hosting, 
                 "hostIP": localNetHost.first().localIP,
+                "aiDictionary": models.aiDictionary,
             }
             return render(request, "gamescreen.html", context)
         else:
@@ -35,11 +36,11 @@ def load_match(request):
         if action == "data":
             return data()
         elif action == "setname":
-            return set_name(request.POST["name"])
+            return set_name(request.POST["name"], request.POST.get("ai", ""))
         elif action == "start":
             return start_match()
         elif action == "choose":
-            return receive_choice(request.POST["username"], request.POST["drawOrBid"])
+            return receive_choice(request.POST["username"], str(request.POST["drawOrBid"]).lower() == "true")
         elif action == "bid":
             return receive_bid(request.POST["username"], int(request.POST["bid"]))
         elif action == "ready":
@@ -53,7 +54,7 @@ def data():
 
 def set_name(newName: str, ai: str = ""):
     if not models.get_players().filter(name=newName).exists():
-        newPlayer = models.Player.objects.create(name=newName, current_bid=0, ai=ai)
+        newPlayer = models.Player.objects.create(name=newName, current_bid=0, ai=ai, ready=(False if ai == "" else True))
         # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s5")
         newPlayer.save()
         models.advance_step()
@@ -65,7 +66,7 @@ def set_name(newName: str, ai: str = ""):
         while (models.get_players().filter(name=modifiedName).exists()):
             counter += 1
             modifiedName = newName + str(counter)
-        newPlayer = models.Player.objects.create(name=modifiedName, current_bid=0, ai=ai)
+        newPlayer = models.Player.objects.create(name=modifiedName, current_bid=0, ai=ai, ready=True)
         newPlayer.save()
         models.advance_step()
         models.add_line_to_log(models.format_player_name(newName) + " was added!")
@@ -81,10 +82,10 @@ def start_match():
         return HttpResponse()
     return HttpResponse(status=403)
 
-def receive_choice(name: str, drawOrBid: str ):
+def receive_choice(name: str, draw: bool ):
     host = models.get_host()
     if host.chooser == name:
-        if drawOrBid == "true" and models.can_draw(): #draw
+        if draw and models.can_draw(): #draw
             models.add_to_group(models.draw_lot())
             models.advance_step()
             return HttpResponse()

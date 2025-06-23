@@ -6,17 +6,17 @@ class AIPlayer(ABC):
     state refers to a nested dictionary representing the game state, this is identical in format to the JSON object printed to the browser console each update.'''
 
     @abstractmethod
-    def bid(state):
+    def bid(state) -> int:
         '''Returns the integer amount this player will bid given the game state, a bid of 0 is counted as a pass'''
         pass
 
     @abstractmethod
-    def draw(state):
+    def draw(state) -> bool:
         '''Returns whether this player will draw another lot given the game state'''
         pass
 
 class Randy(AIPlayer):
-    def bid(state):
+    def bid(state) -> int:
         if bool(random.choice([True, False])):
             return 0
         
@@ -28,5 +28,5 @@ class Randy(AIPlayer):
             return highest + 1
         return 0
     
-    def draw(state):
+    def draw(state) -> bool:
         return bool(random.choice([True, False]))

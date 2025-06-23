@@ -70,6 +70,8 @@ if (isHost == "True"){
     hostIP = "127.0.0.1"
     let startButton = document.querySelector("#start");
     startButton.addEventListener("click", start);
+    let addAIButton = document.querySelector("#add-ai");
+    addAIButton.addEventListener("click", joinAI);
     setTimeout(refreshData, checkPeriod);
 }
 else{
@@ -172,7 +174,7 @@ function displayPlayers(data){
     }
     for (const [i, pData] of data.players.entries()){
         let newPlayerBox = instantiate(playerBoxPrefab);
-        newPlayerBox.querySelector(".player-name").textContent = pData.fields.name;
+        newPlayerBox.querySelector(".player-name").textContent = (pData.fields.ai == "" ? "" : "🤖") + pData.fields.name;
         newPlayerBox.querySelector(".player-money").textContent = pData.fields.money;
         let newDeltaMoney = newPlayerBox.querySelector(".delta-money");
         switch (phase) {
@@ -410,9 +412,34 @@ async function join(event){
     username = document.querySelector("#username").value;
 }
 
+async function joinAI(event){
+    event.preventDefault();
+    let aiDropdown = document.querySelector("#ai-dropdown");
+    let submitData = new FormData();
+    aiName = aiDropdown.options[aiDropdown.selectedIndex].value;
+    submitData.append("name", aiName);
+    submitData.append("action", "setname");
+    submitData.append("ai", aiName);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    try {
+        if (!nameInput.value.match(/^\w*$/)) //only allows word characters
+            throw Error()
+        const response = await fetch(document.URL, {
+            method: "POST",
+            body: submitData,
+            headers: {'X-CSRFToken': csrfToken},
+        });
+        if (!response.ok)
+            throw Error()
+    } catch (e) {
+
+    }
+}
+
 async function start(event){
     event.preventDefault();
     document.querySelector("#start").setAttribute("disabled", true);
+    document.querySelector("#add-ai").setAttribute("disabled", true);
     let submitData = new FormData();
     submitData.append("action", "start");
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -426,6 +453,7 @@ async function start(event){
             throw Error();
     } catch (e) {
         document.querySelector("#start").removeAttribute("disabled");
+        document.querySelector("#add-ai").removeAttribute("disabled");
     }
 }
 
