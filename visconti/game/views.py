@@ -55,7 +55,6 @@ def data():
 def set_name(newName: str, ai: str = ""):
     if not models.get_players().filter(name=newName).exists():
         newPlayer = models.Player.objects.create(name=newName, current_bid=0, ai=ai, ready=(False if ai == "" else True))
-        # newPlayer = models.Player.objects.create(name=newName, current_bid=0, lots="G10 g1 c2 d3 s5")
         newPlayer.save()
         models.advance_step()
         models.add_line_to_log(models.format_player_name(newName) + (" joined!" if ai == "" else " was added!"))
@@ -70,6 +69,7 @@ def set_name(newName: str, ai: str = ""):
         newPlayer.save()
         models.advance_step()
         models.add_line_to_log(models.format_player_name(newName) + " was added!")
+        return HttpResponse()
     return HttpResponse(status=403)
 
 def start_match():
@@ -93,6 +93,7 @@ def receive_choice(name: str, draw: bool ):
             models.end_choosing_phase()
             models.advance_step()
             return HttpResponse()
+        return HttpResponse(status=403)
     return HttpResponse(status=403)
 
 def receive_bid(name: str, bid: int):

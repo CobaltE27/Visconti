@@ -366,18 +366,21 @@ def advance_step():
     host = get_host()
     host.steps += 1
     host.save()
+    print(host.phase + " b:" + host.bidder + " c:" + host.chooser)
     if (host.phase == Phase.BIDDING):
+        print("ai bidding")
         activeAI = get_players().filter(name=host.bidder).first().ai
         if activeAI != "":
             resp = views.receive_bid(host.bidder, aiDictionary[activeAI].bid(views.data_to_dict()))
             if resp.status_code != 200:
                 views.receive_bid(host.bidder, 0)
-    if (host.phase == Phase.CHOOSING and get_players().filter(name=host.chooser).first().ai != ""):
+    elif (host.phase == Phase.CHOOSING):
+        print("ai choosing")
         activeAI = get_players().filter(name=host.chooser).first().ai
         if activeAI != "":
-            resp = views.receive_choice(host.chooser, aiDictionary[activeAI].bid(views.data_to_dict()))
+            resp = views.receive_choice(host.chooser, aiDictionary[activeAI].draw(views.data_to_dict()))
             if resp.status_code != 200:
-                views.receive_choice(host.chooser, False)
+                views.receive_choice(host.chooser, True)
 
 def add_line_to_log(line: str, bold:bool=False):
     '''Add the given string to game logs'''

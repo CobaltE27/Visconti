@@ -18,13 +18,13 @@
     <form> {% csrf_token %}
         <button id="start" disabled>Start Match</button>
     </form>
-    <form> {% csrf_token %}
+    <form id="ai-form"> {% csrf_token %}
         <select name="ai" id="ai-dropdown">
             {% for ai, junk in aiDictionary.items %}
                 <option value="{{ai}}">{{ai}}</option>
             {% endfor %}
         </select>
-        <button id="add-ai">Add Selected AI</button>
+        <button id="add-ai" type="button">Add Selected AI</button>
     </form>
     <p>
         Hosting match, others can play at http://{{hostIP}}:8000/join/

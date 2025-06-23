@@ -66,11 +66,14 @@ dotsStyle.innerHTML = ".in-progress:after { content: \"\" }";
 var dotsCounter = 0;
 setTimeout(animateDots, 500);
 
-if (isHost == "True"){
+const urlQuery = new URLSearchParams(window.location.search);
+const queryIsHost = urlQuery.get("hosting");
+if (isHost == "True" || queryIsHost == "1"){
     hostIP = "127.0.0.1"
     let startButton = document.querySelector("#start");
     startButton.addEventListener("click", start);
     let addAIButton = document.querySelector("#add-ai");
+    console.log(addAIButton);
     addAIButton.addEventListener("click", joinAI);
     setTimeout(refreshData, checkPeriod);
 }
@@ -413,26 +416,26 @@ async function join(event){
 }
 
 async function joinAI(event){
+    console.log("something");
     event.preventDefault();
     let aiDropdown = document.querySelector("#ai-dropdown");
     let submitData = new FormData();
-    aiName = aiDropdown.options[aiDropdown.selectedIndex].value;
+    let aiName = aiDropdown.options[aiDropdown.selectedIndex].value;
+    console.log(aiName);
     submitData.append("name", aiName);
     submitData.append("action", "setname");
     submitData.append("ai", aiName);
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     try {
-        if (!nameInput.value.match(/^\w*$/)) //only allows word characters
-            throw Error()
         const response = await fetch(document.URL, {
             method: "POST",
             body: submitData,
             headers: {'X-CSRFToken': csrfToken},
         });
         if (!response.ok)
-            throw Error()
+            throw Error();
     } catch (e) {
-
+        console.log(e);
     }
 }
 
