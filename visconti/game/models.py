@@ -6,6 +6,7 @@ import re
 from . import aiplayer
 from . import views
 from concurrent import futures
+import time
 
 class Phase(str, Enum):
     JOINING = "joining"
@@ -369,6 +370,8 @@ def advance_step():
         if activeAI != "":
             wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].bid, views.data_to_dict()) , 5)
             bid = (wait.done.pop().result() if len(wait.done) > 0 else 0)
+            followableDelay = (2 if len(wait.done) > 0 else 0)
+            time.sleep(followableDelay)
             resp = views.receive_bid(host.bidder, bid)
             if resp.status_code != 200:
                 views.receive_bid(host.bidder, 0)
@@ -377,6 +380,8 @@ def advance_step():
         if activeAI != "":
             wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].draw, views.data_to_dict()) , 5)
             choice = (wait.done.pop().result() if len(wait.done) > 0 else host.group_lots == "")
+            followableDelay = (2 if len(wait.done) > 0 else 0)
+            time.sleep(followableDelay)
             resp = views.receive_choice(host.chooser, choice)
             if resp.status_code != 200:
                 views.receive_choice(host.chooser, host.group_lots == "")
