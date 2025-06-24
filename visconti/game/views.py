@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, reverse
 import socket
 from . import models
+from . import aiplayer
 from django.http import HttpResponse
 import json
 from django.core import serializers
@@ -26,7 +27,7 @@ def load_match(request):
             context = {
                 "isHost": hosting, 
                 "hostIP": localNetHost.first().localIP,
-                "aiDictionary": models.aiDictionary,
+                "aiDictionary": aiplayer.aiDictionary,
             }
             return render(request, "gamescreen.html", context)
         else:

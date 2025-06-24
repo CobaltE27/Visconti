@@ -5,6 +5,7 @@ from django.db.models import F
 import re
 from . import aiplayer
 from . import views
+from concurrent import futures
 
 class Phase(str, Enum):
     JOINING = "joining"
@@ -24,10 +25,6 @@ class RewardSources(str, Enum):
     RANK = "rank"
     PYRAMID_TOP = "pyramid"
     PYRAMID_RANK = "pyramid_rank"
-
-aiDictionary = {
-    "randy": aiplayer.Randy,
-}
 
 # for what to do if migrations fail after no such column or no such table https://stackoverflow.com/questions/34548768/no-such-table-exception
 # Create your models here.
@@ -366,21 +363,23 @@ def advance_step():
     host = get_host()
     host.steps += 1
     host.save()
-    print(host.phase + " b:" + host.bidder + " c:" + host.chooser)
+    exec = futures.ThreadPoolExecutor()
     if (host.phase == Phase.BIDDING):
-        print("ai bidding")
         activeAI = get_players().filter(name=host.bidder).first().ai
         if activeAI != "":
-            resp = views.receive_bid(host.bidder, aiDictionary[activeAI].bid(views.data_to_dict()))
+            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].bid, views.data_to_dict()) , 5)
+            bid = (wait.done.pop().result() if len(wait.done) > 0 else 0)
+            resp = views.receive_bid(host.bidder, bid)
             if resp.status_code != 200:
                 views.receive_bid(host.bidder, 0)
     elif (host.phase == Phase.CHOOSING):
-        print("ai choosing")
         activeAI = get_players().filter(name=host.chooser).first().ai
         if activeAI != "":
-            resp = views.receive_choice(host.chooser, aiDictionary[activeAI].draw(views.data_to_dict()))
+            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].draw, views.data_to_dict()) , 5)
+            choice = (wait.done.pop().result() if len(wait.done) > 0 else host.group_lots == "")
+            resp = views.receive_choice(host.chooser, choice)
             if resp.status_code != 200:
-                views.receive_choice(host.chooser, True)
+                views.receive_choice(host.chooser, host.group_lots == "")
 
 def add_line_to_log(line: str, bold:bool=False):
     '''Add the given string to game logs'''

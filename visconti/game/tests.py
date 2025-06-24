@@ -245,11 +245,11 @@ class RandyTestCase(TestCase):
         models.Player.objects.create(name="third", money=5, lots="1x 1x", current_bid=0, grain=0, cloth=0, dye=0, spice=0, furs=0, ai="randy")
 
     def test_draw(self):
-        models.aiDictionary["randy"].draw(views.data_to_dict()) #just testing that this doesn't result in an error
+        aiplayer.aiDictionary["randy"].draw(views.data_to_dict()) #just testing that this doesn't result in an error
 
     def test_bid(self):
         for c in range(20):
-            bid = models.aiDictionary["randy"].bid(views.data_to_dict())
+            bid = aiplayer.aiDictionary["randy"].bid(views.data_to_dict())
             # print(bid)
             self.assertIn(bid, [0, 2, 3, 4, 5])
     
@@ -262,4 +262,4 @@ class RandyMustPassTestCase(TestCase):
 
     def test_bid(self):
         for c in range(20):
-            self.assertEqual(models.aiDictionary["randy"].bid(views.data_to_dict()), 0)
+            self.assertEqual(aiplayer.aiDictionary["randy"].bid(views.data_to_dict()), 0)

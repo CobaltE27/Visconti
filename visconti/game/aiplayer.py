@@ -3,7 +3,8 @@ import random
 
 class AIPlayer(ABC):
     '''AI players are static and must act based only on current game state, rteurning an invalid move will result in a move being made for this player automatically
-    state refers to a nested dictionary representing the game state, this is identical in format to the JSON object printed to the browser console each update.'''
+    state refers to a nested dictionary representing the game state, this is identical in format to the JSON object printed to the browser console each update.
+    Methods are time-limited to 5 seconds to prevent infinite looping, if an AI times out a default choice will be made for them.'''
 
     @abstractmethod
     def bid(state) -> int:
@@ -16,6 +17,7 @@ class AIPlayer(ABC):
         pass
 
 class Randy(AIPlayer):
+    '''Makes all game decisions randomly. 50% chance to draw each lot, 50% chance to pass or bid 1 higher.'''
     def bid(state) -> int:
         if bool(random.choice([True, False])):
             return 0
@@ -30,3 +32,7 @@ class Randy(AIPlayer):
     
     def draw(state) -> bool:
         return bool(random.choice([True, False]))
+    
+aiDictionary = {
+    "randy": Randy,
+}
