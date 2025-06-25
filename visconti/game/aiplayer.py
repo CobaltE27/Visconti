@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import random
+from . import models
 
 class AIPlayer(ABC):
     '''AI players are static and must act based only on current game state, rteurning an invalid move will result in a move being made for this player automatically
@@ -33,6 +34,13 @@ class Randy(AIPlayer):
     def draw(state) -> bool:
         return bool(random.choice([True, False]))
     
+class Gian(AIPlayer):
+    def bid(state) -> int:
+        return 0
+    def draw(state) -> bool:
+        return True
+
 aiDictionary = {
     "randy": Randy,
+    "gian": Gian,
 }

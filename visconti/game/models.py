@@ -35,6 +35,7 @@ class Host(models.Model):
     day = models.IntegerField(default=1, null=False)
     group_lots = models.CharField(max_length=20, default="", null=False)
     deck = models.CharField(max_length=500, default="", null=False)
+    harbor = models.CharField(max_length=500, default="", null=False)
     chooser = models.CharField(max_length=100, default="")
     bidder = models.CharField(max_length=100, default="")
     steps = models.IntegerField(default=0)
@@ -57,7 +58,7 @@ class Player(models.Model):
     reward_pyramid_rank = models.IntegerField(default=0)
     ai = models.CharField(max_length=100, default="") #empty string denotes human player
 
-def get_shuffled_deck(playerCount: int) -> str:
+def get_full_deck(playerCount: int, shuffle: bool = True) -> str:
     '''Returns a space-seperated string containing and amount of lots appropriate for the given number of players'''
     deck = []
     costs = ["0", "1", "2", "3", "4", "5", "5"]
@@ -66,10 +67,11 @@ def get_shuffled_deck(playerCount: int) -> str:
     for good in goods:
         for cost in costs:
             deck.append(good + cost)
-    random.shuffle(deck)
 
-    removed = (6 - playerCount) * 6
-    deck = deck[removed:]
+    if shuffle:
+        random.shuffle(deck)
+        removed = (6 - playerCount) * 6
+        deck = deck[removed:]
 
     return " ".join(deck)
 
@@ -128,6 +130,7 @@ def claim_lots(playerName: str):
         add_to_player_lots(player.name, host.group_lots)
         logLine = format_player_name(playerName) + " claimed " + format_lots(host.group_lots) + " for " + format_money(player.current_bid) + "."
     else:
+        host.harbor = (host.harbor + " " + host.group_lots if len(host.harbor != 0) else host.group_lots)
         logLine = "Lacking any bids, the group " + format_lots(host.group_lots) + " was tossed into the harbor."
     host.group_lots = ""
     host.save()
@@ -151,7 +154,7 @@ def start_day():
     select_first_chooser()
     host = get_host()
     players = get_players()
-    host.deck = get_shuffled_deck(len(players))
+    host.deck = get_full_deck(len(players))
     host.group_lots = ""
     host.phase = Phase.CHOOSING
     host.save()
@@ -364,11 +367,12 @@ def advance_step():
     host = get_host()
     host.steps += 1
     host.save()
+    state = views.data_to_dict()
     exec = futures.ThreadPoolExecutor()
     if (host.phase == Phase.BIDDING):
         activeAI = get_players().filter(name=host.bidder).first().ai
         if activeAI != "":
-            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].bid, views.data_to_dict()) , 5)
+            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].bid, state) , 5)
             bid = (wait.done.pop().result() if len(wait.done) > 0 else 0)
             followableDelay = (2 if len(wait.done) > 0 else 0)
             time.sleep(followableDelay)
@@ -378,7 +382,7 @@ def advance_step():
     elif (host.phase == Phase.CHOOSING):
         activeAI = get_players().filter(name=host.chooser).first().ai
         if activeAI != "":
-            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].draw, views.data_to_dict()) , 5)
+            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].draw, state) , 5)
             choice = (wait.done.pop().result() if len(wait.done) > 0 else host.group_lots == "")
             followableDelay = (2 if len(wait.done) > 0 else 0)
             time.sleep(followableDelay)
