@@ -37,8 +37,21 @@ class Randy(AIPlayer):
 class Gian(AIPlayer):
     def bid(state) -> int:
         return 0
+    
     def draw(state) -> bool:
         return True
+    
+    def unseenLots(state) -> list[str]:
+        hFields = state["host"][0]["fields"]
+        full = models.get_full_deck(6, False).split(" ")
+        seen = hFields["harbor"].split(" ") + hFields["group_lots"].split(" ")
+        for p in state["players"]:
+            seen += p["fields"]["lots"].split(" ")
+        for s in seen:
+            full.remove(s)
+        return full
+
+
 
 aiDictionary = {
     "randy": Randy,

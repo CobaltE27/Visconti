@@ -1,6 +1,3 @@
-class staticish:
-    val = 1
-    def meth(self):
-        return self.val
+diff = [1, 1, 2, 3] - [1, 2]
     
-print(staticish().meth())
+print(diff)
