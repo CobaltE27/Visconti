@@ -35,10 +35,32 @@ class Randy(AIPlayer):
         return bool(random.choice([True, False]))
     
 class Gian(AIPlayer):
+    '''Indi's AI'''
     def bid(state) -> int:
+        minBid = 0
+        for p in state["players"]:
+            bid = p["fields"]["current_bid"]
+            if bid > minBid: minBid = bid
+            if p["fields"]["name"] == myName:
+                myFields = p["fields"]
+        minBid += 1
+        if minBid > myFields["money"]:
+            return 0
+        hFields = state["host"][0]["fields"]
+        myName = hFields["bidder"]
+        myFields = None
+        groupAvg = Gian.averageQuality(hFields["group_lots"].split(" "))
+        unseenAvg = Gian.averageQuality(Gian.unseenLots(state))
+        oppAvgs = dict()
+        for i, p in enumerate(state["players"]):
+            if p["fields"]["name"] != myName:
+                oppAvgs[i] = Gian.averageQuality(p["fields"]["lots"].split(" "))
+        
+        
         return 0
     
     def draw(state) -> bool:
+        me = state["host"][0]["fields"]["chooser"]
         return True
     
     def unseenLots(state) -> list[str]:
@@ -50,7 +72,9 @@ class Gian(AIPlayer):
         for s in seen:
             full.remove(s)
         return full
-
+    
+    def averageQuality(lotList: list[str]):
+        return models.cost_of_lots(" ".join(lotList)) / len(lotList)
 
 
 aiDictionary = {

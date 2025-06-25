@@ -8,6 +8,13 @@ from . import views
 from concurrent import futures
 import time
 
+rankRewards = {
+    3: [30, 15],
+    4: [30, 20, 10],
+    5: [30, 20, 10, 5],
+    6: [30, 20, 15, 10, 5],
+}
+
 class Phase(str, Enum):
     JOINING = "joining"
     CHOOSING = "choosing"
@@ -130,7 +137,7 @@ def claim_lots(playerName: str):
         add_to_player_lots(player.name, host.group_lots)
         logLine = format_player_name(playerName) + " claimed " + format_lots(host.group_lots) + " for " + format_money(player.current_bid) + "."
     else:
-        host.harbor = (host.harbor + " " + host.group_lots if len(host.harbor != 0) else host.group_lots)
+        host.harbor = (host.harbor + " " + host.group_lots if len(host.harbor) != 0 else host.group_lots)
         logLine = "Lacking any bids, the group " + format_lots(host.group_lots) + " was tossed into the harbor."
     host.group_lots = ""
     host.save()
@@ -217,11 +224,7 @@ def score_day():
     for p in players:
         playerCosts[p.name] = cost_of_lots(p.lots)
     playerCosts = {k: v for k, v in sorted(playerCosts.items(), key=lambda item: item[1], reverse=True)} #sort dictionary by descending cost
-    rewards = []
-    if len(players) == 3: rewards = [30, 15]
-    elif len(players) == 4: rewards = [30, 20, 10]
-    elif len(players) == 5: rewards = [30, 20, 10, 5]
-    elif len(players) == 6: rewards = [30, 20, 15, 10, 5]
+    rewards = rankRewards[len(players)]
     currentRewardIndex = 0
     while (currentRewardIndex < len(rewards)):
         highestPlayers = [list(playerCosts.keys())[0]]
@@ -369,23 +372,24 @@ def advance_step():
     host.save()
     state = views.data_to_dict()
     exec = futures.ThreadPoolExecutor()
+    adaptiveDelay = 1.5
     if (host.phase == Phase.BIDDING):
         activeAI = get_players().filter(name=host.bidder).first().ai
         if activeAI != "":
-            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].bid, state) , 5)
+            wait = futures.wait([exec.submit(aiplayer.aiDictionary[activeAI].bid, state)] , 5)
+            delay = (adaptiveDelay if len(wait.done) > 0 else 0)
             bid = (wait.done.pop().result() if len(wait.done) > 0 else 0)
-            followableDelay = (2 if len(wait.done) > 0 else 0)
-            time.sleep(followableDelay)
+            time.sleep(delay)
             resp = views.receive_bid(host.bidder, bid)
             if resp.status_code != 200:
                 views.receive_bid(host.bidder, 0)
     elif (host.phase == Phase.CHOOSING):
         activeAI = get_players().filter(name=host.chooser).first().ai
         if activeAI != "":
-            wait = futures.wait(exec.submit(aiplayer.aiDictionary[activeAI].draw, state) , 5)
+            wait = futures.wait([exec.submit(aiplayer.aiDictionary[activeAI].draw, state)] , 5)
+            delay = (2 if len(wait.done) > 0 else 0)
             choice = (wait.done.pop().result() if len(wait.done) > 0 else host.group_lots == "")
-            followableDelay = (2 if len(wait.done) > 0 else 0)
-            time.sleep(followableDelay)
+            time.sleep(delay)
             resp = views.receive_choice(host.chooser, choice)
             if resp.status_code != 200:
                 views.receive_choice(host.chooser, host.group_lots == "")
