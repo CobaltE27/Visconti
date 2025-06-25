@@ -163,6 +163,7 @@ def start_day():
     players = get_players()
     host.deck = get_full_deck(len(players))
     host.group_lots = ""
+    host.harbor = ""
     host.phase = Phase.CHOOSING
     host.save()
     for p in get_players():
