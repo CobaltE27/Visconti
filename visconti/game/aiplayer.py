@@ -38,17 +38,17 @@ class Gian(AIPlayer):
     '''Indi's AI'''
     def bid(state) -> int:
         minBid = 0
-        for p in state["players"]:
-            bid = p["fields"]["current_bid"]
-            if bid > minBid: minBid = bid
-            if p["fields"]["name"] == myName:
-                myFields = p["fields"]
         minBid += 1
         if minBid > myFields["money"]:
             return 0
         hFields = state["host"][0]["fields"]
         myName = hFields["bidder"]
         myFields = None
+        for p in state["players"]:
+            bid = p["fields"]["current_bid"]
+            if bid > minBid: minBid = bid
+            if p["fields"]["name"] == myName:
+                myFields = p["fields"]
         groupAvg = Gian.averageQuality(hFields["group_lots"].split(" "))
         unseenAvg = Gian.averageQuality(Gian.unseenLots(state))
         oppAvgs = dict()
@@ -76,8 +76,41 @@ class Gian(AIPlayer):
     def averageQuality(lotList: list[str]):
         return models.cost_of_lots(" ".join(lotList)) / len(lotList)
 
+class Errata(AIPlayer):
+    '''Deliberately terrible AI that plays erratically and bids wildly'''
+    def bid(state) -> int:
+        if random.random() < 0.3:
+            return 0
+        
+        hFields = state["host"][0]["fields"]
+        myName = hFields["bidder"]
+        myFields = None
+        for p in state["players"]:
+            if p["fields"]["name"] == myName:
+                myFields = p["fields"]
+        groupFraction = models.count_lots(hFields["group_lots"]) / 5
+        max = int(myFields["money"]) * groupFraction
+        if models.highest_bid() < max:
+            if myName == hFields["chooser"]:
+                return models.highest_bid() + 1
+            else:
+                return max
+        else:
+            return 0
+
+    def draw(state) -> bool:
+        hFields = state["host"][0]["fields"]
+        myName = hFields["chooser"]
+        myLots = None
+        for p in state["players"]:
+            if p["fields"]["name"] == myName:
+                myLots = p["fields"]["lots"]
+        spacesLeft = 5 - models.count_lots(myLots)
+
+        return models.count_lots(hFields["group_lots"]) + 1 <= spacesLeft
 
 aiDictionary = {
     "randy": Randy,
     "gian": Gian,
+    "errata": Errata,
 }

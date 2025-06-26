@@ -327,6 +327,8 @@ def end_bidding_phase():
         else:
             host.phase = Phase.WAITING
             host.save()
+            if get_players().exclude(ready=True).count() == 0: #all players are ready
+                end_waiting_phase()
     else: #more space to fill, go to next chooser for the day
         host = get_host()
         host.phase = Phase.CHOOSING
