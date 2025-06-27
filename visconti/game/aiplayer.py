@@ -89,7 +89,7 @@ class Errata(AIPlayer):
             if p["fields"]["name"] == myName:
                 myFields = p["fields"]
         groupFraction = models.count_lots(hFields["group_lots"]) / 5
-        max = int(myFields["money"]) * groupFraction
+        max = min(int(myFields["money"]), 40) * groupFraction
         if models.highest_bid() < max:
             if myName == hFields["chooser"]:
                 return models.highest_bid() + 1
@@ -100,14 +100,13 @@ class Errata(AIPlayer):
 
     def draw(state) -> bool:
         hFields = state["host"][0]["fields"]
-        myName = hFields["chooser"]
-        myLots = None
-        for p in state["players"]:
-            if p["fields"]["name"] == myName:
-                myLots = p["fields"]["lots"]
-        spacesLeft = 5 - models.count_lots(myLots)
-
-        return models.count_lots(hFields["group_lots"]) + 1 <= spacesLeft
+        # myName = hFields["chooser"]
+        # myLots = None
+        # for p in state["players"]:
+        #     if p["fields"]["name"] == myName:
+        #         myLots = p["fields"]["lots"]
+        # spacesLeft = 5 - models.count_lots(myLots)
+        return models.count_lots(hFields["group_lots"]) < 1
 
 aiDictionary = {
     "randy": Randy,
