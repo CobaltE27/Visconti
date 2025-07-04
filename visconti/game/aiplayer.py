@@ -95,8 +95,14 @@ class Gian(AIPlayer):
         return maxBid
     
     def draw(state) -> bool: #TODO implement
-        me = state["host"][0]["fields"]["chooser"]
-        return True
+        myName = state["host"][0]["fields"]["chooser"]
+        hFields = state["host"][0]["fields"]
+        groupCount = models.count_lots(hFields["group_lots"])
+        myFields = None
+        for p in state["players"]:
+            if p["fields"]["name"] == myName:
+                myFields = p["fields"]
+        return groupCount + 1 <= (5 - models.count_lots(myFields["lots"]))
     
     def unseenLots(state) -> list[str]:
         hFields = state["host"][0]["fields"]
@@ -200,8 +206,9 @@ class Errata(AIPlayer):
         for p in state["players"]:
             if p["fields"]["name"] == myName:
                 myFields = p["fields"]
-        groupFraction = models.count_lots(hFields["group_lots"]) // 5
-        max = min(int(myFields["money"]), 40) * groupFraction
+        groupFraction = models.count_lots(hFields["group_lots"]) / 5
+        max = round(min(int(myFields["money"]), 40) * groupFraction)
+        print(max)
         if models.highest_bid() < max:
             if myName == hFields["chooser"]:
                 return models.highest_bid() + 1
