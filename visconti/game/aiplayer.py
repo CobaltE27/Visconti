@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import random
 from . import models
+import copy
 
 class AIPlayer(ABC):
     '''AI players are static and must act based only on current game state, rteurning an invalid move will result in a move being made for this player automatically
@@ -38,6 +39,8 @@ class Gian(AIPlayer):
     '''Indi's basic AI'''
     def bid(state: dict) -> int:
         hFields = state["host"][0]["fields"]
+        groupCount = models.count_lots(hFields["group_lots"])
+        print(str(hFields["group_lots"]))
         myName = hFields["bidder"]
         myFields = None
         highestCurrentBid = 0
@@ -50,17 +53,25 @@ class Gian(AIPlayer):
         unfilledTotal = 0
         for p in state["players"]:
             unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
-        stateIfTake = state.copy()
+        stateIfTake = copy.deepcopy(state)
         leaveScores = []
+        noneCanBid = True
         for p in stateIfTake["players"]:
             if p["fields"]["name"] == myName:
                 p["fields"]["lots"] = hFields["group_lots"] if p["fields"]["lots"] == "" else p["fields"]["lots"] + " " + hFields["group_lots"]
+                stateIfTake["host"][0]["fields"]["group_lots"] = ""
             else:
-                stateIfThisOppTakes = state.copy()
+                print(str(p["fields"]["name"]) + " takes?")
+                stateIfThisOppTakes = copy.deepcopy(state)
+                stateIfThisOppTakes["host"][0]["fields"]["group_lots"] = ""
                 for opp in stateIfThisOppTakes["players"]:
                     if opp["fields"]["name"] == p["fields"]["name"]:
-                        opp["fields"]["lots"] = hFields["group_lots"] if opp["fields"]["lots"] == "" else opp["fields"]["lots"] + " " + hFields["group_lots"]
+                        oppRemainingSlots = 5 - models.count_lots(opp["fields"]["lots"])
+                        if opp["fields"]["money"] >= highestCurrentBid + 1 and oppRemainingSlots >= groupCount: #this opp can bid for the group
+                            opp["fields"]["lots"] = hFields["group_lots"] if opp["fields"]["lots"] == "" else opp["fields"]["lots"] + " " + hFields["group_lots"]
+                            noneCanBid = False
                         leaveScores.append(Gian.scoreWithAvgUnseenFill(stateIfThisOppTakes))
+        print("If I take?")
         takeScore = Gian.scoreWithAvgUnseenFill(stateIfTake)
         avgLeaveScore = dict()
         for leaveScore in leaveScores:
@@ -69,29 +80,31 @@ class Gian(AIPlayer):
         
         print(str(takeScore) + " " + str(leaveScores))
         diffByTake = takeScore[myName] - avgLeaveScore[myName]
+        print(diffByTake)
         if diffByTake < 0: #taking would, on average, decrease our score
             return 0
         #taking if worth it, but how much?
 
-        maxBid = min(diffByTake, int(myFields["money"])) #proof of concept, some fraction of diffByTake may be more optimal
+        maxBid = min(max(diffByTake * (groupCount / 5), 1), int(myFields["money"])) #proof of concept, some fraction of diffByTake may be more optimal.
         if highestCurrentBid > maxBid:
             return 0
-        
-        if hFields["chooser"] == myName:
+
+        if hFields["chooser"] == myName or noneCanBid:
             return highestCurrentBid + 1
         
         return maxBid
     
-    def draw(state) -> bool:
+    def draw(state) -> bool: #TODO implement
         me = state["host"][0]["fields"]["chooser"]
         return True
     
     def unseenLots(state) -> list[str]:
         hFields = state["host"][0]["fields"]
         full = models.get_full_deck(6, False).split(" ")
-        seen = hFields["harbor"].split(" ") + hFields["group_lots"].split(" ")
+        seen = str(hFields["harbor"]).split(" ") + str(hFields["group_lots"]).split(" ")
         for p in state["players"]:
-            seen += p["fields"]["lots"].split(" ")
+            seen = seen + str(p["fields"]["lots"]).split(" ")
+        seen[:] = [x for x in seen if x != ""]#remove all empty strings
         for s in seen:
             full.remove(s)
         return full
@@ -110,8 +123,8 @@ class Gian(AIPlayer):
         for lot in lotList:
             if "G" != lot[0]:
                 avgs[lot[0]] += 1
-        for avg in avgs:
-            avg /= len(lotList)
+        for good in avgs:
+            avgs[good] /= len(lotList)
         return avgs
     
     def scoreWithAvgUnseenFill(stateCopy):
@@ -124,6 +137,7 @@ class Gian(AIPlayer):
         for p in stateCopy["players"]:
             unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
         dilutedUnseenAvg = unseenAvg * (deckCount / unfilledTotal)
+        print("ua:" + str(dilutedUnseenAvg))
         for p in stateCopy["players"]:
             pRewards[p["fields"]["name"]] = 0
             lotString = p["fields"]["lots"]
@@ -133,6 +147,8 @@ class Gian(AIPlayer):
                 p["fields"][g] = min(p["fields"][g] + lotString.count(g[0]) + int(round(remainingSlots * unseenGoodsAvg[g[0]])), 7)
                 pRewards[p["fields"]["name"]] += models.cumulative_pyramid_score(p["fields"][g])
         pQualities = {k: v for k, v in sorted(pQualities.items(), key=lambda item: item[1], reverse=True)} #sort dictionary by descending quality
+        # print("p: " + str(pRewards))
+        print("q: " + str(pQualities))
         
         rewards = models.rankRewards[len(stateCopy["players"])]
         currentRewardIndex = 0
@@ -150,7 +166,8 @@ class Gian(AIPlayer):
             currentRewardIndex += len(highestPNames)
             for highest in highestPNames:
                 del pQualities[highest]
-        
+        # print("qr: " + str(pRewards))
+
         for g in models.goodsNames:
             rewards = [10, 5]
             currentRewardIndex = 0
@@ -158,14 +175,15 @@ class Gian(AIPlayer):
                 if currentRewardIndex < len(rewards):
                     levelPlayers = []
                     for p in stateCopy["players"]:
-                        if p[g] == l:
+                        if p["fields"][g] == l:
                             levelPlayers.append(p["fields"]["name"])
                     if len(levelPlayers) > 0:
                         portion = sum(rewards[currentRewardIndex : min(currentRewardIndex + len(levelPlayers), len(rewards))]) // len(levelPlayers)
                         for winnerName in levelPlayers:
                             pRewards[winnerName] += portion
                     currentRewardIndex += len(levelPlayers)
-        
+        # print("pr: " + str(pRewards))
+
         return pRewards
 
 

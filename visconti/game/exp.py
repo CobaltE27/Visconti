@@ -1,3 +1,4 @@
-diff = [1, 1, 2, 3] - [1, 2]
+e = "d4"
+x = ""
     
-print(diff)
+print(str(e.split(" ") + x.split(" ")))
