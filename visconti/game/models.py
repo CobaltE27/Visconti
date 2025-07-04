@@ -7,6 +7,7 @@ from . import aiplayer
 from . import views
 from concurrent import futures
 import time
+import math
 
 rankRewards = {
     3: [30, 15],
@@ -28,6 +29,7 @@ class Good(str, Enum):
     DYE = "dye"
     SPICE = "spice"
     FURS = "furs"
+goodsNames = {Good.GRAIN, Good.CLOTH, Good.DYE, Good.SPICE, Good.FURS}
 
 class RewardSources(str, Enum):
     RANK = "rank"
@@ -244,7 +246,6 @@ def score_day():
         for highest in highestPlayers:
             del playerCosts[highest]
     #update pyramids
-    goodsNames = {Good.GRAIN, Good.CLOTH, Good.DYE, Good.SPICE, Good.FURS}
     players = get_players()
     for p in players:
         p.grain = min(p.grain + p.lots.count("g"), 7)
@@ -381,7 +382,7 @@ def advance_step():
         if activeAI != "":
             wait = futures.wait([exec.submit(aiplayer.aiDictionary[activeAI].bid, state)] , 5)
             delay = (adaptiveDelay if len(wait.done) > 0 else 0)
-            bid = (wait.done.pop().result() if len(wait.done) > 0 else 0)
+            bid = int(math.ceil((wait.done.pop().result() if len(wait.done) > 0 else 0)))
             time.sleep(delay)
             resp = views.receive_bid(host.bidder, bid)
             if resp.status_code != 200:
