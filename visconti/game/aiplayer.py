@@ -33,7 +33,11 @@ class Randy(AIPlayer):
         return 0
     
     def draw(state) -> bool:
-        return bool(random.choice([True, False]))
+        groupCount = models.count_lots(state["host"][0]["fields"]["group_lots"])
+        if groupCount == 0: return True
+        elif groupCount == 1: return random.random() < 0.67
+        elif groupCount == 2: return random.random() < 0.5
+        return False
     
 class Gian(AIPlayer):
     '''Indi's basic AI'''
@@ -83,7 +87,7 @@ class Gian(AIPlayer):
         print(diffByTake)
         if diffByTake < 0: #taking would, on average, decrease our score
             return 0
-        #taking if worth it, but how much?
+        #taking if worth it, but how much? TODO calculate worth to others and add value of blocking
 
         maxBid = min(max(diffByTake * (groupCount / 5), 1), int(myFields["money"])) #proof of concept, some fraction of diffByTake may be more optimal.
         if highestCurrentBid > maxBid:
@@ -94,15 +98,69 @@ class Gian(AIPlayer):
         
         return maxBid
     
-    def draw(state) -> bool: #TODO implement
+    def draw(state) -> bool: #TODO reduce deck waste
         myName = state["host"][0]["fields"]["chooser"]
         hFields = state["host"][0]["fields"]
+        print("choosing given " + str(hFields["group_lots"]))
         groupCount = models.count_lots(hFields["group_lots"])
+        if groupCount == 0:
+            return True
         myFields = None
         for p in state["players"]:
             if p["fields"]["name"] == myName:
                 myFields = p["fields"]
-        return groupCount + 1 <= (5 - models.count_lots(myFields["lots"]))
+        slotsLeft = 5 - models.count_lots(myFields["lots"])
+        if groupCount + 1 > slotsLeft:
+            return False
+        myName = myFields["name"]
+        
+        avgDiffForThem = Gian.rewardDiffOnTake(state)
+        whoGroupIsGoodFor = []
+        for p in state["players"]:
+            if avgDiffForThem[p["fields"]["name"]] >= 0:
+                whoGroupIsGoodFor.append(p["fields"]["name"])
+        
+        groupAvgQuality = Gian.averageQuality(str(hFields["group_lots"]).split(" "))
+        unseenAvgQuality = Gian.averageQuality(Gian.unseenLots(state))
+        potentialGroupAvgQuality = (groupCount * groupAvgQuality + unseenAvgQuality) / (groupCount + 1)
+        if myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) == 1: #group is only good for me
+            print("only good for me!")
+            return False
+        elif myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) > 1: #group is good for multiple people
+            print("good for me and others")
+            slotsLeftFor = {}
+            for p in state["players"]:
+                pName = p["fields"]["name"]
+                if pName in whoGroupIsGoodFor:
+                    slotsLeftFor[pName] = 5 - models.count_lots(p["fields"]["lots"])
+            playersWithLessSlots = []
+            for pName, pSlotsLeft in slotsLeftFor:
+                if pSlotsLeft < slotsLeft:
+                    playersWithLessSlots.append(pName)
+            if len(playersWithLessSlots) == 0:
+                return False
+            
+            return potentialGroupAvgQuality > groupAvgQuality * 0.9 #arbitrary threshold, maybe improve later
+
+        elif not myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) > 0: #group is good only for others
+            print("good for others only")
+            numAbleToDraw = min(3, models.count_lots(hFields["deck"]))
+            allCanBeBlocked = True
+            for p in state["players"]:
+                pName = p["fields"]["name"]
+                pSlotsLeft = 5 - models.count_lots(p["fields"]["lots"])
+                if pName in whoGroupIsGoodFor and pSlotsLeft >= numAbleToDraw:
+                    allCanBeBlocked = False
+            if allCanBeBlocked:
+                return True
+
+            return potentialGroupAvgQuality < groupAvgQuality * 0.9
+        else:
+            print("group is bad for all")
+            return False
+
+
+
     
     def unseenLots(state) -> list[str]:
         hFields = state["host"][0]["fields"]
@@ -134,6 +192,7 @@ class Gian(AIPlayer):
         return avgs
     
     def scoreWithAvgUnseenFill(stateCopy):
+        '''Returns a dictionary mapping player names to expected rewards given current state and average lot fill based on unseen lots. This is destructive to the passed state, only pass copies of current state.'''
         pQualities = dict()
         pRewards = dict()
         deckCount = models.count_lots(stateCopy["host"][0]["fields"]["deck"])
@@ -192,6 +251,39 @@ class Gian(AIPlayer):
 
         return pRewards
 
+    def stateCopyIfPlayerTakes(state, playerIndex):
+        '''Returns a deep copy of the given state where the player in state["players"][playerIndex] is given the lots from the current group'''
+        stateCopy = copy.deepcopy(state)
+        hFields = state["host"][0]["fields"]
+        p = stateCopy["players"][playerIndex]
+        p["fields"]["lots"] = hFields["group_lots"] if p["fields"]["lots"] == "" else p["fields"]["lots"] + " " + hFields["group_lots"]
+        stateCopy["host"][0]["fields"]["group_lots"] = ""
+        return stateCopy
+
+    def rewardDiffOnTake(state):
+        '''Returns a dictionary mapping player names to estimated reward difference if they take the current group. Rewards culculated with unseen fill. Players which cannot take the group are assigned -1000 reward'''
+        groupSize = models.count_lots(state["host"][0]["fields"]["group_lots"])
+        rewardsIfTheyTake = {}
+        for i, p in enumerate(state["players"]):
+            rewardsIfTheyTake[p["fields"]["name"]] = Gian.scoreWithAvgUnseenFill(Gian.stateCopyIfPlayerTakes(i))
+        avgDiffByTaking = {}
+        numOtherPlayers = len(state["players"]) - 1
+        for p in state["players"]:
+            pName = p["fields"]["name"]
+            if 5 - models.count_lots(p["fields"]["lots"]) < groupSize: #this player cannot take the group
+                avgDiffByTaking[pName] = -1000
+                continue
+            rewardsIfPTakes = rewardsIfTheyTake[pName]
+            pRewardIfTake = rewardsIfPTakes[pName]
+            avgIfLeave = 0
+            for o in state["players"]:
+                otherName = o["fields"]["name"]
+                if otherName == pName:
+                    continue
+                avgIfLeave += rewardsIfTheyTake[otherName][pName]
+            avgIfLeave /= numOtherPlayers
+            avgDiffByTaking[pName] = pRewardIfTake - avgIfLeave
+        return avgDiffByTaking
 
 
 class Errata(AIPlayer):
@@ -208,7 +300,6 @@ class Errata(AIPlayer):
                 myFields = p["fields"]
         groupFraction = models.count_lots(hFields["group_lots"]) / 5
         max = round(min(int(myFields["money"]), 40) * groupFraction)
-        print(max)
         if models.highest_bid() < max:
             if myName == hFields["chooser"]:
                 return models.highest_bid() + 1
