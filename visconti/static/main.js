@@ -73,7 +73,6 @@ if (isHost == "True" || queryIsHost == "1"){
     let startButton = document.querySelector("#start");
     startButton.addEventListener("click", start);
     let addAIButton = document.querySelector("#add-ai");
-    console.log(addAIButton);
     addAIButton.addEventListener("click", joinAI);
     setTimeout(refreshData, checkPeriod);
 }
@@ -102,7 +101,15 @@ async function refreshData(){
         if (steps < hostSteps){
             console.log("refresh!");
             steps = hostSteps;
+            if (typeof phase !== "undefined") {
+                if (phase != Phase.CHOOSING && data.host[0].fields.phase == Phase.CHOOSING)
+                    playSound("choose_start.mp3");
+                else if (phase != Phase.BIDDING && data.host[0].fields.phase == Phase.BIDDING)
+                    playSound("bid_start.mp3");
+            }
             phase = data.host[0].fields.phase;
+            if (typeof day === "undefined" || day < data.host[0].fields.day)
+                playSound("day_start.mp3");
             day = Number(data.host[0].fields.day);
             updateMainBoardStatics(data);
             updateStartButton(data);
@@ -140,8 +147,11 @@ function updateMainBoardStatics(data){
     dayCounter.textContent = data.host[0].fields.day + " / 3";
     phaseDisplay.textContent = data.host[0].fields.phase;
     let groupLots = makeLotsFromString(data.host[0].fields.group_lots);
-    if (groupLots.length > 0 && data.host[0].fields.phase == Phase.CHOOSING)
+    if (groupLots.length > 0 && data.host[0].fields.phase == Phase.CHOOSING) {
         groupLots[groupLots.length - 1].classList.add("new-lot");
+        if (Number(groupLots[groupLots.length - 1].querySelector("span").textContent) >= 10)
+            playSound("gold.mp3");
+    }
     mainBoard.querySelector(".lot-container").replaceChildren(...groupLots);
     deckCounter.textContent = countLotsFromString(data.host[0].fields.deck);
     logArea.innerHTML = data.host[0].fields.log;
@@ -240,6 +250,7 @@ function updateMainBoardContent(data){
             waitingForm.classList.add("hide");
             break;
         case Phase.END:
+            playSound("win.mp3");
             bidView.classList.add("hide");
             chooseDisplay.classList.add("hide");
             chooseForm.classList.add("hide");
@@ -367,6 +378,7 @@ function updateMainBoardContent(data){
             break;
         }
         case Phase.WAITING:
+            playSound("day_end.mp3");
             chooseForm.classList.add("hide");
             chooseDisplay.classList.add("hide");
             bidView.classList.add("hide");
@@ -416,12 +428,10 @@ async function join(event){
 }
 
 async function joinAI(event){
-    console.log("something");
     event.preventDefault();
     let aiDropdown = document.querySelector("#ai-dropdown");
     let submitData = new FormData();
     let aiName = aiDropdown.options[aiDropdown.selectedIndex].value;
-    console.log(aiName);
     submitData.append("name", aiName);
     submitData.append("action", "setname");
     submitData.append("ai", aiName);
@@ -638,7 +648,6 @@ function updatePlayerStats(data){
                 rewardPyramidRank: pData.fields.reward_pyramid_rank
             };
         }
-        console.log(playerStats);
         let newStatTables = [];
         for (let pData of data.players){
             let statTable = instantiate(playerStatsPrefab);
@@ -705,4 +714,9 @@ function animateDots() {
     let dots = ".".repeat(dotsCounter) + " ".repeat(3 - dotsCounter);
     dotsStyle.innerHTML = ".in-progress:after { content: \"" + dots + "\" }";
     setTimeout(animateDots, 500);
+}
+
+function playSound(filename) {
+    let snd = new Audio("media/" + filename);
+    snd.play();
 }

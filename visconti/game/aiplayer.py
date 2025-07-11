@@ -282,7 +282,6 @@ class Gian(AIPlayer):
             avgDiffByTaking[pName] = pRewardIfTake - avgIfLeave
         return avgDiffByTaking
 
-
 class Errata(AIPlayer):
     '''Deliberately terrible AI that plays erratically and bids wildly'''
     def bid(state) -> int:

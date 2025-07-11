@@ -17,21 +17,20 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from game import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('host/', views.host_match, name='host_match'),
     path('', views.load_match, name='load_match'),
     path('join/', views.join_match, name='join_match'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # TODO persistent users/players leaving
 # TODO sounds
-# TODO favicon
-# TODO full rules
 # TODO break up css
 # TODO end game graphs
-# TODO ai players
 
 # TODO animate numbers changing?
 # TODO dock or tide animations
