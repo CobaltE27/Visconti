@@ -17,6 +17,17 @@ button {
         transform: translate(0px, -5%) rotate(0deg);
     }
 }
+/* 
+#bid-view {
+    display: flex;
+    flex-direction: column;
+} */
+
+canvas {
+    position: absolute;
+    z-index: -1;
+    background-color: blue;
+}
 
 /* .in-progress:after {
     animation: dot 4s linear infinite forwards;

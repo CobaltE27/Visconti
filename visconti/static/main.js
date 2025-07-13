@@ -60,11 +60,19 @@ var logArea = document.querySelector("#log-area");
 
 var lotPrefab = document.querySelector("#prefab-lot");
 
+var canv = document.querySelector("#bid-view canvas");
+var waveRefresh = 30;
+var waveCounter = 0;
+var waveAmplitude = 7;
+var waveTarget = 0.1;
+var waveLevel = 0.1;
+
 var playerStats = undefined;
 var dotsStyle = document.head.appendChild(document.createElement("style"));
 dotsStyle.innerHTML = ".in-progress:after { content: \"\" }";
 var dotsCounter = 0;
 setTimeout(animateDots, 500);
+setTimeout(animateWaves, waveRefresh);
 
 const urlQuery = new URLSearchParams(window.location.search);
 const queryIsHost = urlQuery.get("hosting");
@@ -104,8 +112,11 @@ async function refreshData(){
             if (typeof phase !== "undefined") {
                 if (phase != Phase.CHOOSING && data.host[0].fields.phase == Phase.CHOOSING)
                     playSound("choose_start.mp3");
-                else if (phase != Phase.BIDDING && data.host[0].fields.phase == Phase.BIDDING)
+                else if (phase != Phase.BIDDING && data.host[0].fields.phase == Phase.BIDDING) {
                     playSound("bid_start.mp3");
+                    waveTarget = 0.1;
+                    waveLevel = 0.1;
+                }
             }
             phase = data.host[0].fields.phase;
             if (typeof day === "undefined" || day < data.host[0].fields.day)
@@ -349,6 +360,7 @@ function updateMainBoardContent(data){
             let currentBidderName = data.host[0].fields.bidder;
             let passedBidder = false;
             let newBoxes = bidBoxes.children;
+            let numBids = 0;
             for (let i = 0; i < newBoxes.length; i++){
                 let bid = newBoxes[i].querySelector(".bid");
                 let bName = newBoxes[i].querySelector(".player-name");
@@ -365,12 +377,16 @@ function updateMainBoardContent(data){
                         if (bid.textContent == 0) {
                             bid.textContent = "pass";
                             bid.classList.remove("money");
+                        } else {
+                            numBids++;
                         }
                     }
                 } else { //this user is the current bidder, psace occupied by a form
                     passedBidder = true;
                 }
             }
+
+            waveTarget = 0.1 + 0.8 * (numBids / newBoxes.length)
             
             chooseForm.classList.add("hide");
             chooseDisplay.classList.add("hide");
@@ -719,4 +735,45 @@ function animateDots() {
 function playSound(filename) {
     let snd = new Audio("media/" + filename);
     snd.play();
+}
+
+function animateWaves() {
+    if (typeof phase !== "undefined" && phase == Phase.BIDDING) {
+        let width = bidView.clientWidth;
+        let height = bidView.clientHeight;
+        canv.width = width;
+        canv.height = height;
+        let ctx = canv.getContext("2d");
+        let horizRezolution = 200;
+        waveLevel = waveLevel + (waveTarget - waveLevel) * 0.1;
+        let vOffset = height - height * waveLevel;
+        ctx.fillStyle = "#005EB8";
+        ctx.moveTo(0, waveFunc(waveCounter) + vOffset);
+        ctx.beginPath();
+        for (let x = 1; x < width; x += (width / horizRezolution)) {
+            ctx.lineTo(x, waveFunc(x * 0.005 + waveCounter) + vOffset);
+        }
+        ctx.lineTo(width, waveFunc(width * 0.005 + waveCounter) + vOffset);
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.lineTo(0, waveFunc(waveCounter) + vOffset);
+        ctx.fill();
+
+        ctx.strokeStyle = "#669ACC";
+        ctx.lineWidth = 7.0;
+        ctx.moveTo(0, waveFunc(waveCounter) + vOffset);
+        ctx.beginPath();
+        for (let x = 1; x < width; x += (width / horizRezolution)) {
+            ctx.lineTo(x, waveFunc(x * 0.005 + waveCounter) + vOffset);
+        }
+        ctx.lineTo(width, waveFunc(width * 0.005 + waveCounter) + vOffset);
+        ctx.stroke();
+    }
+    waveCounter += 1.0 / 50.0;
+    if (waveCounter > 1) waveCounter = 0
+    setTimeout(animateWaves, waveRefresh);
+}
+
+function waveFunc(x) {
+    return Math.sin(x * 2 * Math.PI) * waveAmplitude;
 }
