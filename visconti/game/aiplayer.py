@@ -317,7 +317,7 @@ class Errata(AIPlayer):
         return models.count_lots(hFields["group_lots"]) < 1
 
 class Blackrock(AIPlayer):
-    ''''''
+    '''Donated by an anonymous benefactor'''
     NUMDAYS = 3
     #AI tunable constants
     MONOPOLYBONUS = 10#bonus if in the lead, for extra to maintain lead
