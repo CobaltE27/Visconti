@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import random
 from . import models
 import copy
+import numpy
+import scipy
 
 class AIPlayer(ABC):
     '''AI players are static and must act based only on current game state, rteurning an invalid move will result in a move being made for this player automatically
@@ -158,7 +160,6 @@ class Gian(AIPlayer):
             print("group is bad for all")
             return slotsLeft >= groupCount + 1 and groupAvgQuality > unseenAvgQuality * 0.6
 
-    
     def unseenLots(state) -> list[str]:
         hFields = state["host"][0]["fields"]
         full = models.get_full_deck(6, False).split(" ")
@@ -198,6 +199,7 @@ class Gian(AIPlayer):
         unfilledTotal = 0
         for p in stateCopy["players"]:
             unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
+            p["fields"]["money"] = 0
         dilutedUnseenAvg = unseenAvg * (deckCount / unfilledTotal)
         # print("ua:" + str(dilutedUnseenAvg))
         for p in stateCopy["players"]:
@@ -314,8 +316,240 @@ class Errata(AIPlayer):
         # spacesLeft = 5 - models.count_lots(myLots)
         return models.count_lots(hFields["group_lots"]) < 1
 
+class Blackrock(AIPlayer):
+    ''''''
+    NUMDAYS = 3
+    #AI tunable constants
+    MONOPOLYBONUS = 10#bonus if in the lead, for extra to maintain lead
+    EXTRAQUALITYBONUS =1
+    SQUEMISHNESS = 1.5#regarding uncertainty; 0 is certain of everything; infty is uncertain value worthless; 1 is balanced but still overconfident
+    AGRESSION = 0.5#should vary from zero to one
+    OPORTUNITYCOST = 3 # per card
+    FOMO = 5 # per card per turn, UNUSED
+
+    NRISKS = 5
+
+    def bid(state) -> int:
+        goods = [("cloth","c"),("dye","d"),("furs","f"),("spice","s"),("grain","g")]#G for gold is excluded
+        lotIdxName = {name:i for i,(name,n) in enumerate(goods)}
+        lotIdxN = {n:i for i,(name,n) in enumerate(goods)}
+        goodrankpoints = [10,5]
+        qualrankpoints_old = {3:[30,15],4:[30,20,10],5:[30,20,10,5],6:[30,20,15,10,5]}
+        numTotalLots = {3:18,4:24,5:30,6:36}#6 per player
+        permbonus=[0,0,0,0,5,10,20]
+        maxgoods = 5*3+1
+        maxplrs = 6
+        goodrankpoints = Blackrock.pad(goodrankpoints,0,maxplrs+1)
+        permbonus = Blackrock.pad(permbonus,20,maxgoods)
+        qualrankpoints = {}
+        for k,v in qualrankpoints_old.items():
+            qualrankpoints[k] =Blackrock.pad(v,0,k+1)
+        #buy buisnesss
+        #fire employees
+        #sell off safety equipment
+        #sell company to unsuspecting buyer
+        
+        #ignore future lots
+        host = state["host"][0]["fields"]
+        thelot = host["group_lots"]
+        deckSize = len(host["deck"].split())
+        me = None
+        mei = None
+        NPlayers = len(state["players"])
+        soldCards = 0
+        maxCards = 0
+        plridxs = {}
+        currentMaxBid=0
+        currentRecieverIdx = None
+        for i,p in enumerate(state["players"]): 
+            plridxs[p["fields"]["name"]] = i
+            if(p["fields"]["name"] == host["bidder"]):
+                me = p["fields"]
+                mei = i
+            if(p["fields"]["current_bid"]>currentMaxBid): 
+                currentRecieverIdx = i
+                currentMaxBid = p["fields"]["current_bid"]
+        chi = plridxs[host["chooser"]]
+        currentReciever = state["players"][currentRecieverIdx]["fields"] if currentRecieverIdx else None
+
+        
+        dvalueDefault = numpy.zeros(shape=(NPlayers,Blackrock.NRISKS),dtype=int)#or if no one takes
+        
+        dvalueMatrix = numpy.zeros(shape=(NPlayers,NPlayers,Blackrock.NRISKS),dtype=int)#me,other,risk
+        for i,p in enumerate(state["players"]): 
+            
+            basev = Blackrock.lotValue("",p["fields"],currentReciever,state)
+            newv = Blackrock.lotValue(thelot,p["fields"],p["fields"],state)
+            dvalueDefault[i,:] = newv-basev
+            maxCards+=5
+            soldCards+=len(p["fields"]["lots"].split())
+            for j,p2 in enumerate(state["players"]):
+                if(i==j):continue#skip self
+                #other skips are possible
+                basev = Blackrock.lotValue("",p["fields"],p2["fields"],state)
+                newv = Blackrock.lotValue(thelot,p["fields"],p["fields"],state)
+                dvalueMatrix[i,j,:] = newv-basev
+        soldCards+=len(thelot.split())#TODO account for discards and the size of the deck
+        cardDeficit =maxCards - soldCards - deckSize
+
+        certainties = numpy.zeros(shape=Blackrock.NRISKS,dtype=float)
+        certainties[0]=1#certain
+        saturation = float(soldCards)/float(maxCards)
+        certainties[1] =1.- (Blackrock.NUMDAYS-host["day"]+1)/float(Blackrock.NUMDAYS)*(1-saturation)#for goods
+        certainties[1] **= Blackrock.SQUEMISHNESS
+        certainties[2] =1.- 1.*(1-saturation)#for quality
+        certainties[2] **= Blackrock.SQUEMISHNESS
+        certainties[3] = (1.-scipy.special.erf(cardDeficit/1.4))/2.
+        certainties[4] = (1.+scipy.special.erf(cardDeficit/1.4))/2.
+        dvaluemaxTake = currentMaxBid
+        dvaluemaxPass = currentMaxBid
+        #print("deficit=",cardDeficit)
+        #print(f"saturation: {saturation}")
+        #print(f"value: {dvalueDefault[mei,:]} dot {certainties}")
+        i_if_take = mei
+        i_if_pass = currentRecieverIdx
+        
+        for i,p in enumerate(state["players"]): 
+            hasbid = numpy.logical_xor(numpy.logical_xor((i>chi) , (i>=mei)) , (chi >= mei))#me has not bid yet
+            canbid = (p["fields"]["money"]>currentMaxBid) and (len(thelot.split())+len(p["fields"]["lots"].split()) <=5)
+            if(hasbid or mei==i or not canbid):continue
+            dValueTake = numpy.dot(dvalueMatrix[i,mei,:],certainties)
+            dValuePass = numpy.dot(dvalueMatrix[i,currentRecieverIdx,:] if currentRecieverIdx else dvalueDefault[i,:],certainties)
+            dValueTake = min(dValueTake,p["fields"]["money"])
+            dValuePass = min(dValuePass,p["fields"]["money"])
+            #dont bid agains someone who cant match
+            #print(dValueTake.shape,dValuePass.shape)
+            #dvaluemax = max(dvaluemax,numpy.dot(dvalueDefault[i,:],certainties))
+            if(dvaluemaxTake<dValueTake):
+                dvaluemaxTake = max(dvaluemaxTake,dValueTake)#how much worth to them for me to not have it
+                i_if_take = i
+            if(dvaluemaxPass<dValuePass):
+                dvaluemaxPass = max(dvaluemaxPass,dValuePass)#how much worth to them for me to not have it
+                i_if_pass = i
+        
+        dvalueme = numpy.dot(dvalueMatrix[mei,i_if_pass,:] if i_if_pass else dvalueDefault[mei,:],certainties)
+        anticipateTaking = i_if_take==mei
+        mybid=0
+        currentMaxBid = currentMaxBid#TODO use this to bid
+        #dont game theory out the value matrix; it will not stack up against bad strategies
+        if(dvalueme>dvaluemaxTake): mybid= dvaluemaxTake+1#outbid future or past
+        #if(dvalueme<dvaluemax): mybid= dvaluemax-1 #too agressive
+        if(dvalueme<=dvaluemaxTake): mybid= int((dvalueme*(1-Blackrock.AGRESSION)+(dvaluemaxTake-1)*Blackrock.AGRESSION))#round down only
+        mybid = int((mybid))#just int
+        mybid = max(mybid,0)
+        if(mybid==0) and (host["day"]==1) and (soldCards==len(thelot.split())):
+            mybid = 1#prevent first card stalemate with self
+        mybid = min(mybid,me["money"])
+        return mybid
+
+    def draw(state) -> bool:
+        goods = [("cloth","c"),("dye","d"),("furs","f"),("spice","s"),("grain","g")]#G for gold is excluded
+        lotIdxName = {name:i for i,(name,n) in enumerate(goods)}
+        lotIdxN = {n:i for i,(name,n) in enumerate(goods)}
+        goodrankpoints = [10,5]
+        qualrankpoints_old = {3:[30,15],4:[30,20,10],5:[30,20,10,5],6:[30,20,15,10,5]}
+        numTotalLots = {3:18,4:24,5:30,6:36}#6 per player
+        permbonus=[0,0,0,0,5,10,20]
+        maxgoods = 5*3+1
+        maxplrs = 6
+        goodrankpoints = Blackrock.pad(goodrankpoints,0,maxplrs+1)
+        permbonus = Blackrock.pad(permbonus,20,maxgoods)
+        qualrankpoints = {}
+        for k,v in qualrankpoints_old.items():
+            qualrankpoints[k] =Blackrock.pad(v,0,k+1)
+        #just draw max I can bid on
+        #always have a vulchers eye out for live prey
+        host = state["host"][0]["fields"]
+        me = None
+        lotcounts = {}
+        for p in state["players"]: 
+            if(p["fields"]["name"] == host["chooser"]):me = p["fields"]
+            plots = p["fields"]["lots"].split()
+            if not (len(plots) in lotcounts.keys()) : lotcounts[len(plots)]=0
+            lotcounts[len(plots)] +=1
+        mylots = me["lots"].split()
+        drawnlots = host["group_lots"].split()
+        if(len(mylots)+len(drawnlots) < 5):
+            return True
+        else: 
+            return False
+    
+    def playervec(plr):
+        goods = [("cloth","c"),("dye","d"),("furs","f"),("spice","s"),("grain","g")]#G for gold is excluded
+        vec = Blackrock.newvec()
+        for i,(name,n) in enumerate(goods):
+            vec[i]=plr[name]
+        return vec
+    
+    def lotsvec(lotsStr):
+        goods = [("cloth","c"),("dye","d"),("furs","f"),("spice","s"),("grain","g")]#G for gold is excluded
+        lotIdxN = {n:i for i,(name,n) in enumerate(goods)}
+        lots = lotsStr.split()
+        vec = Blackrock.newvec()
+        qual=0
+        for lot in lots:
+            if lot[:1] in lotIdxN.keys():
+                vec[lotIdxN[lot[:1]]]+=1
+            qual+=int(lot[1:])
+        return vec,qual
+    
+    def lotValue(extralot,me,reciever,state):
+        goodrankpoints = [10,5]
+        qualrankpoints_old = {3:[30,15],4:[30,20,10],5:[30,20,10,5],6:[30,20,15,10,5]}
+        numTotalLots = {3:18,4:24,5:30,6:36}#6 per player
+        permbonus=[0,0,0,0,5,10,20]
+        maxgoods = 5*3+1
+        maxplrs = 6
+        goodrankpoints = Blackrock.pad(goodrankpoints,0,maxplrs+1)
+        permbonus = Blackrock.pad(permbonus,20,maxgoods)
+        qualrankpoints = {}
+        for k,v in qualrankpoints_old.items():
+            qualrankpoints[k] =Blackrock.pad(v,0,k+1)
+
+        host = state["host"][0]["fields"]
+        #expected payout (certain, uncertaiin)
+        extralotvec,extraqual = Blackrock.lotsvec(extralot)
+        melotvec,melotqual = Blackrock.lotsvec(me["lots"])
+        rank = Blackrock.newvec()+1
+        qrank = 1
+        tie = Blackrock.newvec()+1
+        qtie=1
+        maxvec=Blackrock.newvec()
+        maxq = 0
+        meRecives = 1 if (not reciever is None) and me["name"]==reciever["name"] else 0
+        for i,p in enumerate(state["players"]):
+            if p["fields"]["name"]==me["name"]:continue#skip self
+            pRecives = 1 if (not reciever is None) and p["fields"]["name"]==reciever["name"] else 0
+            plotvec,plotqual = Blackrock.lotsvec(p["fields"]["lots"])
+            rank+= numpy.where(Blackrock.playervec(p["fields"]) + plotvec+extralotvec*pRecives>Blackrock.playervec(me)+ melotvec+extralotvec*meRecives,1,0)
+            tie+= numpy.where(Blackrock.playervec(p["fields"]) + plotvec+extralotvec*pRecives==Blackrock.playervec(me)+ melotvec+extralotvec*meRecives,1,0)
+            if (plotqual>melotqual+extraqual): qrank+=1
+            if (plotqual==melotqual+extraqual): qtie+=1
+            maxvec=numpy.maximum(maxvec,Blackrock.playervec(p["fields"]) + plotvec+extralotvec*pRecives)
+            maxq = max(maxq,plotqual)
+        daysleftEx = Blackrock.NUMDAYS-host["day"]
+        valueUncertainGoods = numpy.sum([numpy.sum(goodrankpoints[rank[i]:rank[i]+tie[i]])/tie[i] for i in range(5)])\
+            +numpy.sum(numpy.where(rank==1,Blackrock.playervec(me)+ melotvec+extralotvec*meRecives - maxvec,0))*Blackrock.MONOPOLYBONUS*max(daysleftEx,3)\
+            +max(melotqual+extraqual - maxq,0)*Blackrock.EXTRAQUALITYBONUS
+        valueUncertainQuality=numpy.sum(qualrankpoints[len(state["players"])][qrank:qrank+qtie])/qtie#quality
+        valueCertain = numpy.sum([permbonus[Blackrock.playervec(me)+melotvec[i]+extralotvec[i]*meRecives] for i in range(5)])*(daysleftEx+1)\
+            #TODO stop negatives and firsd draw stalemate
+        valueUncertainOpportunity = -len(extralot.split())*meRecives*Blackrock.OPORTUNITYCOST
+        valueUncertainFomo = len(extralot.split())*meRecives*daysleftEx*Blackrock.FOMO
+        return numpy.array([valueCertain,valueUncertainGoods,valueUncertainQuality,valueUncertainOpportunity,valueUncertainFomo],dtype=int)
+    
+    def newvec():
+        return numpy.zeros(shape=5,dtype=int)
+    
+    def pad(ls,num,LEN):
+        ret = numpy.full(fill_value=num,shape=LEN)
+        ret[:len(ls)]=ls
+        return ret
+
+
 aiDictionary = {
     "randy": Randy,
     "gian": Gian,
     "errata": Errata,
+    "blackrock": Blackrock,
 }
