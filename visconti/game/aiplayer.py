@@ -6,7 +6,7 @@ import numpy
 import scipy
 
 class AIPlayer(ABC):
-    '''AI players are static and must act based only on current game state, rteurning an invalid move will result in a move being made for this player automatically
+    '''AI players are static and must act based only on current game state, returning an invalid move will result in a move being made for this player automatically
     state refers to a nested dictionary representing the game state, this is identical in format to the JSON object printed to the browser console each update.
     Methods are time-limited to 5 seconds to prevent infinite looping, if an AI times out a default choice will be made for them.'''
 
@@ -40,53 +40,48 @@ class Randy(AIPlayer):
         elif groupCount == 1: return random.random() < 0.67
         elif groupCount == 2: return random.random() < 0.5
         return False
-    
+
 class Gian(AIPlayer):
     '''Indi's basic AI'''
     def bid(state: dict) -> int:
         hFields = state["host"][0]["fields"]
         groupCount = models.count_lots(hFields["group_lots"])
-        print(str(hFields["group_lots"]))
         myName = hFields["bidder"]
+        print(myName + "'s opinion on " + str(hFields["group_lots"]))
         myFields = None
         highestCurrentBid = 0
+        unfilledTotal = 0
         for p in state["players"]:
             bid = int(p["fields"]["current_bid"])
+            unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
             if bid > highestCurrentBid: highestCurrentBid = bid
             if p["fields"]["name"] == myName:
                 myFields = p["fields"]
         
-        unfilledTotal = 0
-        for p in state["players"]:
-            unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
-        stateIfTake = copy.deepcopy(state)
-        leaveScores = []
+        scoresIfTheyTake = {}
         noneCanBid = True
-        for p in stateIfTake["players"]:
-            if p["fields"]["name"] == myName:
-                p["fields"]["lots"] = hFields["group_lots"] if p["fields"]["lots"] == "" else p["fields"]["lots"] + " " + hFields["group_lots"]
-                stateIfTake["host"][0]["fields"]["group_lots"] = ""
+        for i, p in enumerate(state["players"]):
+            stateIfPTakes = copy.deepcopy(state)
+            pFieldsIfTakes = stateIfPTakes["players"][i]["fields"]
+            pRemainingSlots = 5 - models.count_lots(p["fields"]["lots"])
+            if p["fields"]["money"] >= highestCurrentBid + 1 and pRemainingSlots >= groupCount:
+                pFieldsIfTakes["lots"] = hFields["group_lots"] if p["fields"]["lots"] == "" else p["fields"]["lots"] + " " + hFields["group_lots"]
+                noneCanBid = False
             else:
-                # print(str(p["fields"]["name"]) + " takes?")
-                stateIfThisOppTakes = copy.deepcopy(state)
-                stateIfThisOppTakes["host"][0]["fields"]["group_lots"] = ""
-                for opp in stateIfThisOppTakes["players"]:
-                    if opp["fields"]["name"] == p["fields"]["name"]:
-                        oppRemainingSlots = 5 - models.count_lots(opp["fields"]["lots"])
-                        if opp["fields"]["money"] >= highestCurrentBid + 1 and oppRemainingSlots >= groupCount: #this opp can bid for the group
-                            opp["fields"]["lots"] = hFields["group_lots"] if opp["fields"]["lots"] == "" else opp["fields"]["lots"] + " " + hFields["group_lots"]
-                            noneCanBid = False
-                        leaveScores.append(Gian.scoreWithAvgUnseenFill(stateIfThisOppTakes))
-        # print("If I take?")
-        takeScore = Gian.scoreWithAvgUnseenFill(stateIfTake)
-        avgLeaveScore = dict()
-        for leaveScore in leaveScores:
-            for pName in leaveScore.keys():
-                avgLeaveScore[pName] = avgLeaveScore.get(pName, 0) + leaveScore[pName] / len(leaveScores)
-        
-        print(str(takeScore) + " " + str(leaveScores))
-        diffByTake = takeScore[myName] - avgLeaveScore[myName]
-        print(diffByTake)
+                stateIfPTakes["host"][0]["fields"]["harbor"] = hFields["group_lots"] if stateIfPTakes["host"][0]["fields"]["harbor"] == "" else stateIfPTakes["host"][0]["fields"]["harbor"] + " " + hFields["group_lots"]
+            stateIfPTakes["host"][0]["fields"]["group_lots"] = ""
+            scoresIfTheyTake[p["fields"]["name"]] = Gian.scoreWithAvgUnseenFill(stateIfPTakes)
+
+        print(scoresIfTheyTake)
+        scoreIfTake = 0
+        avgScoreIfLeave = 0
+        for name, scores in scoresIfTheyTake.items():
+            if name == myName:
+                scoreIfTake = scores[myName]
+            else:
+                avgScoreIfLeave += scores[myName] / (len(scoresIfTheyTake) - 1)
+        diffByTake = scoreIfTake - avgScoreIfLeave
+        print(diffByTake)   
         if diffByTake < 0: #taking would, on average, decrease our score
             return 0
         #taking if worth it, but how much? TODO calculate worth to others and add value of blocking, TODO bias based on slots left and num lots left
@@ -117,6 +112,7 @@ class Gian(AIPlayer):
         print(str(myName) + " choosing given " + str(hFields["group_lots"]))
         
         avgDiffForThem = Gian.rewardDiffOnTake(state)
+        print("adft: " + str(avgDiffForThem))
         whoGroupIsGoodFor = []
         for p in state["players"]:
             if avgDiffForThem[p["fields"]["name"]] >= 0:
@@ -142,7 +138,7 @@ class Gian(AIPlayer):
             if len(playersWithLessSlots) == 0:
                 return False
             
-            return potentialGroupAvgQuality > unseenAvgQuality #arbitrary threshold, maybe improve later
+            return potentialGroupAvgQuality > unseenAvgQuality * 0.9 #arbitrary threshold, maybe improve later
         elif not myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) > 0: #group is good only for others
             print("good for others only")
             numAbleToDraw = min(3, models.count_lots(hFields["deck"]))
@@ -153,6 +149,7 @@ class Gian(AIPlayer):
                 if pName in whoGroupIsGoodFor and pSlotsLeft >= numAbleToDraw:
                     allCanBeBlocked = False
             if allCanBeBlocked:
+                print("blocking")
                 return True
 
             return potentialGroupAvgQuality < groupAvgQuality * 0.9
@@ -201,7 +198,8 @@ class Gian(AIPlayer):
             unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
             p["fields"]["money"] = 0
         dilutedUnseenAvg = unseenAvg * (deckCount / unfilledTotal)
-        # print("ua:" + str(dilutedUnseenAvg))
+        print("dua:" + str(dilutedUnseenAvg))
+        print("uga:" + str(unseenGoodsAvg))
         for p in stateCopy["players"]:
             pRewards[p["fields"]["name"]] = 0
             lotString = p["fields"]["lots"]

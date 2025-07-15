@@ -28,9 +28,5 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # TODO persistent users/players leaving
-# TODO sounds
 # TODO break up css
 # TODO end game graphs
-
-# TODO animate numbers changing?
-# TODO dock or tide animations
