@@ -89,7 +89,8 @@ class Gian(AIPlayer):
                     avgScoreIfLeave += scores[pName] / (len(scoresIfTheyTake) - 1)
             diffIfTheyTake[pName] = scoreIfTake - avgScoreIfLeave
             if Gian.isAfterMe(state, myName, pName):
-                maxWorthToAfter = max(maxWorthToAfter, diffIfTheyTake[pName] * (groupCount / 5))
+                if p["fields"]["money"] >= highestCurrentBid + 1 and 5 - models.count_lots(p["fields"]["lots"]) >= groupCount: #only count worth if taking is possible
+                    maxWorthToAfter = max(maxWorthToAfter, diffIfTheyTake[pName] * (groupCount / 5))
         print(diffIfTheyTake) 
         if diffIfTheyTake[myName] < 0: #taking would, on average, decrease our score
             return 0
@@ -112,7 +113,7 @@ class Gian(AIPlayer):
         if hFields["chooser"] == myName or noneAfterCanBid:
             return highestCurrentBid + 1
         
-        return minBid
+        return max(minBid, highestCurrentBid + 1)
     
     def draw(state) -> bool: #TODO reduce deck waste
         myName = state["host"][0]["fields"]["chooser"]
