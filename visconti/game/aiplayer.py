@@ -4,6 +4,7 @@ from . import models
 import copy
 import numpy
 import scipy
+import math
 
 class AIPlayer(ABC):
     '''AI players are static and must act based only on current game state, returning an invalid move will result in a move being made for this player automatically
@@ -42,7 +43,7 @@ class Randy(AIPlayer):
         return False
 
 class Gian(AIPlayer):
-    '''Indi's basic AI'''
+    '''Indi's decent AI'''
     def bid(state: dict) -> int:
         hFields = state["host"][0]["fields"]
         groupCount = models.count_lots(hFields["group_lots"])
@@ -51,49 +52,67 @@ class Gian(AIPlayer):
         myFields = None
         highestCurrentBid = 0
         unfilledTotal = 0
-        for p in state["players"]:
+        for i, p in enumerate(state["players"]):
             bid = int(p["fields"]["current_bid"])
             unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
             if bid > highestCurrentBid: highestCurrentBid = bid
             if p["fields"]["name"] == myName:
                 myFields = p["fields"]
-        
+
+        print("uaq: " + str(Gian.averageQuality(Gian.unseenLots(state))) + " ug: " + str(Gian.averageGoods(Gian.unseenLots(state))))
         scoresIfTheyTake = {}
-        noneCanBid = True
+        noneAfterCanBid = True
         for i, p in enumerate(state["players"]):
             stateIfPTakes = copy.deepcopy(state)
             pFieldsIfTakes = stateIfPTakes["players"][i]["fields"]
             pRemainingSlots = 5 - models.count_lots(p["fields"]["lots"])
             if p["fields"]["money"] >= highestCurrentBid + 1 and pRemainingSlots >= groupCount:
                 pFieldsIfTakes["lots"] = hFields["group_lots"] if p["fields"]["lots"] == "" else p["fields"]["lots"] + " " + hFields["group_lots"]
-                noneCanBid = False
+                if Gian.isAfterMe(state, myName, p["fields"]["name"]):
+                    noneAfterCanBid = False
             else:
                 stateIfPTakes["host"][0]["fields"]["harbor"] = hFields["group_lots"] if stateIfPTakes["host"][0]["fields"]["harbor"] == "" else stateIfPTakes["host"][0]["fields"]["harbor"] + " " + hFields["group_lots"]
             stateIfPTakes["host"][0]["fields"]["group_lots"] = ""
             scoresIfTheyTake[p["fields"]["name"]] = Gian.scoreWithAvgUnseenFill(stateIfPTakes)
 
         print(scoresIfTheyTake)
-        scoreIfTake = 0
-        avgScoreIfLeave = 0
-        for name, scores in scoresIfTheyTake.items():
-            if name == myName:
-                scoreIfTake = scores[myName]
-            else:
-                avgScoreIfLeave += scores[myName] / (len(scoresIfTheyTake) - 1)
-        diffByTake = scoreIfTake - avgScoreIfLeave
-        print(diffByTake)   
-        if diffByTake < 0: #taking would, on average, decrease our score
+        diffIfTheyTake = {}
+        maxWorthToAfter = 0
+        for p in state["players"]:
+            pName = p["fields"]["name"]
+            scoreIfTake = 0
+            avgScoreIfLeave = 0
+            for name, scores in scoresIfTheyTake.items():
+                if name == pName:
+                    scoreIfTake = scores[pName]
+                else:
+                    avgScoreIfLeave += scores[pName] / (len(scoresIfTheyTake) - 1)
+            diffIfTheyTake[pName] = scoreIfTake - avgScoreIfLeave
+            if Gian.isAfterMe(state, myName, pName):
+                maxWorthToAfter = max(maxWorthToAfter, diffIfTheyTake[pName] * (groupCount / 5))
+        print(diffIfTheyTake) 
+        if diffIfTheyTake[myName] < 0: #taking would, on average, decrease our score
             return 0
-        #taking if worth it, but how much? TODO calculate worth to others and add value of blocking, TODO bias based on slots left and num lots left
-
-        maxBid = min(max(diffByTake * (groupCount / 5), 1), int(myFields["money"])) #proof of concept, some fraction of diffByTake may be more optimal.
-        if highestCurrentBid > maxBid:
+        
+        worthToMe = math.ceil(min(max(diffIfTheyTake[myName] * (groupCount / 5), 1), int(myFields["money"]))) #proof of concept, some fraction of diff may be more optimal.
+        maxBid = None
+        minBid = None
+        if worthToMe > maxWorthToAfter: #worth less to others, don't need to bid full worth to me
+            print("more to me")
+            maxBid = worthToMe
+            minBid = max(math.ceil(maxWorthToAfter * 1.1), 1) #TODO, see if this should be min'ed with max bid, probably fine as is
+        else: #worth more to others, worth some amount to block them
+            print("more to others")
+            oppWeight = 1 / (len(state["players"]) - 1)
+            maxBid = math.ceil((1 - oppWeight) * worthToMe + oppWeight * maxWorthToAfter) #should really account for opponents who have already bid to know if you should outbid them
+            minBid = worthToMe
+        print("m: " + str(minBid) + ", M: " + str(maxBid))
+        if highestCurrentBid + 1 > maxBid:
             return 0
-
-        if hFields["chooser"] == myName or noneCanBid:
+        if hFields["chooser"] == myName or noneAfterCanBid:
             return highestCurrentBid + 1
         
-        return maxBid
+        return minBid
     
     def draw(state) -> bool: #TODO reduce deck waste
         myName = state["host"][0]["fields"]["chooser"]
@@ -136,6 +155,7 @@ class Gian(AIPlayer):
                 if pSlotsLeft < slotsLeft:
                     playersWithLessSlots.append(pName)
             if len(playersWithLessSlots) == 0:
+                print("can't block any")
                 return False
             
             return potentialGroupAvgQuality > unseenAvgQuality * 0.9 #arbitrary threshold, maybe improve later
@@ -149,7 +169,7 @@ class Gian(AIPlayer):
                 if pName in whoGroupIsGoodFor and pSlotsLeft >= numAbleToDraw:
                     allCanBeBlocked = False
             if allCanBeBlocked:
-                print("blocking")
+                print("spoiling")
                 return True
 
             return potentialGroupAvgQuality < groupAvgQuality * 0.9
@@ -190,27 +210,46 @@ class Gian(AIPlayer):
         '''Returns a dictionary mapping player names to expected rewards given current state and average lot fill based on unseen lots. This is destructive to the passed state, only pass copies of current state.'''
         pQualities = dict()
         pRewards = dict()
-        deckCount = models.count_lots(stateCopy["host"][0]["fields"]["deck"])
-        unseenAvg = Gian.averageQuality(Gian.unseenLots(stateCopy))
-        unseenGoodsAvg = Gian.averageGoods(Gian.unseenLots(stateCopy))
         unfilledTotal = 0
-        for p in stateCopy["players"]:
-            unfilledTotal += 5 - models.count_lots(p["fields"]["lots"])
-            p["fields"]["money"] = 0
-        dilutedUnseenAvg = unseenAvg * (deckCount / unfilledTotal)
-        print("dua:" + str(dilutedUnseenAvg))
-        print("uga:" + str(unseenGoodsAvg))
-        for p in stateCopy["players"]:
+        remainingSlotsOf = {}
+        currentPIndex = 0
+        pCount = len(stateCopy["players"])
+        for i, p in enumerate(stateCopy["players"]):
             pRewards[p["fields"]["name"]] = 0
             lotString = p["fields"]["lots"]
             remainingSlots = 5 - models.count_lots(lotString)
-            pQualities[p["fields"]["name"]] = models.cost_of_lots(lotString) + remainingSlots * dilutedUnseenAvg
+            remainingSlotsOf[p["fields"]["name"]] = remainingSlots
+            unfilledTotal += remainingSlots
+            pQualities[p["fields"]["name"]] = models.cost_of_lots(lotString)
+            p["fields"]["money"] = 0
+            if p["fields"]["name"] == stateCopy["host"][0]["fields"]["chooser"]:
+                currentPIndex = i
             for g in models.goodsNames:
-                p["fields"][g] = min(p["fields"][g] + lotString.count(g[0]) + int(round(remainingSlots * unseenGoodsAvg[g[0]])), 7)
-                pRewards[p["fields"]["name"]] += models.cumulative_pyramid_score(p["fields"][g])
+                p["fields"][g] = min(p["fields"][g] + lotString.count(g[0]), 7)
+        #TODO account for persistent value of pyramid rank and height across rounds
+        
+        unseenGoodsAvg = Gian.averageGoods(Gian.unseenLots(stateCopy))
+        unseenAvg = Gian.averageQuality(Gian.unseenLots(stateCopy))
+        AVG_LOTS_PER_GROUP = 2
+        deckCount = models.count_lots(stateCopy["host"][0]["fields"]["deck"])
+        while deckCount > 0 and unfilledTotal > 0:
+            currentPIndex = (currentPIndex + 1) % pCount
+            currentFields = stateCopy["players"][currentPIndex]["fields"]
+            currentName = currentFields["name"]
+            numTaken = min([AVG_LOTS_PER_GROUP, remainingSlotsOf[currentName], deckCount])
+            pQualities[currentName] += numTaken * unseenAvg
+            for g in models.goodsNames:
+                currentFields[g] = min(currentFields[g] + numTaken * unseenGoodsAvg[g[0]], 7)
+
+            deckCount -= numTaken
+            remainingSlotsOf[currentName] -= numTaken
+            unfilledTotal -= numTaken
+
+        for p in stateCopy["players"]:
+            for g in models.goodsNames:
+                p["fields"][g] = round(p["fields"][g])
+        # print(pQualities)
         pQualities = {k: v for k, v in sorted(pQualities.items(), key=lambda item: item[1], reverse=True)} #sort dictionary by descending quality
-        # print("p: " + str(pRewards))
-        # print("q: " + str(pQualities))
         
         rewards = models.rankRewards[len(stateCopy["players"])]
         currentRewardIndex = 0
@@ -228,7 +267,6 @@ class Gian(AIPlayer):
             currentRewardIndex += len(highestPNames)
             for highest in highestPNames:
                 del pQualities[highest]
-        # print("qr: " + str(pRewards))
 
         for g in models.goodsNames:
             rewards = [10, 5]
@@ -244,7 +282,6 @@ class Gian(AIPlayer):
                         for winnerName in levelPlayers:
                             pRewards[winnerName] += portion
                     currentRewardIndex += len(levelPlayers)
-        # print("pr: " + str(pRewards))
 
         return pRewards
 
@@ -258,16 +295,18 @@ class Gian(AIPlayer):
         return stateCopy
 
     def rewardDiffOnTake(state):
-        '''Returns a dictionary mapping player names to estimated reward difference if they take the current group. Rewards culculated with unseen fill. Players which cannot take the group are assigned -1000 reward'''
+        '''Returns a dictionary mapping player names to estimated reward difference if they take the current group. Rewards calculated with unseen fill. Players which cannot take the group are assigned -1000 reward'''
         groupSize = models.count_lots(state["host"][0]["fields"]["group_lots"])
+        highestCurrentBid = 0
         rewardsIfTheyTake = {}
         for i, p in enumerate(state["players"]):
+            if p["fields"]["current_bid"] > highestCurrentBid: highestCurrentBid = p["fields"]["current_bid"]
             rewardsIfTheyTake[p["fields"]["name"]] = Gian.scoreWithAvgUnseenFill(Gian.stateCopyIfPlayerTakes(state, i))
         avgDiffByTaking = {}
         numOtherPlayers = len(state["players"]) - 1
         for p in state["players"]:
             pName = p["fields"]["name"]
-            if 5 - models.count_lots(p["fields"]["lots"]) < groupSize: #this player cannot take the group
+            if 5 - models.count_lots(p["fields"]["lots"]) < groupSize or p["fields"]["money"] < highestCurrentBid + 1: #this player cannot take the group
                 avgDiffByTaking[pName] = -1000
                 continue
             rewardsIfPTakes = rewardsIfTheyTake[pName]
@@ -281,6 +320,19 @@ class Gian(AIPlayer):
             avgIfLeave /= numOtherPlayers
             avgDiffByTaking[pName] = pRewardIfTake - avgIfLeave
         return avgDiffByTaking
+
+    def isAfterMe(state, myName, theirName):
+        myIndex = 0
+        chooserIndex = 0
+        theirIndex = 0
+        pCount = len(state["players"])
+        for i, p in enumerate(state["players"]):
+            if p["fields"]["name"] == myName: myIndex = i
+            if p["fields"]["name"] == theirName: theirIndex = i
+            if p["fields"]["name"] == state["host"][0]["fields"]["chooser"]: chooserIndex = i
+        myIndex = (myIndex - (chooserIndex + 1)) % pCount #transalte indexes so that chooser is last
+        theirIndex = (theirIndex - (chooserIndex + 1)) % pCount
+        return theirIndex > myIndex
 
 class Errata(AIPlayer):
     '''Deliberately terrible AI that plays erratically and bids wildly'''
