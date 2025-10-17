@@ -598,7 +598,7 @@ class Blackrock(AIPlayer):
         return ret
 
 
-aiDictionary = {
+aiDictionary: dict[str, AIPlayer] = {
     "randy": Randy,
     "gian": Gian,
     "errata": Errata,

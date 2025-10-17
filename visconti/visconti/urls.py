@@ -30,3 +30,6 @@ urlpatterns = [
 # TODO persistent users/players leaving
 # TODO break up css
 # TODO end game graphs
+# TODO error messages
+# TODO harbor sound vs claim sound
+# TODO obfuscate deck to bots
