@@ -48,7 +48,6 @@ def load_match(request):
             return set_ready(request.POST["username"])
         return HttpResponse(status=403)
 
-
 def data():
     dataDict = data_to_dict()
     return HttpResponse(json.dumps(dataDict), content_type="application/json")
@@ -144,3 +143,15 @@ def data_to_dict():
         "host": model_to_dict(host),
         }
     return dataDict
+
+def testMatch(ais: list[str]):
+    localNetAddr = "test"
+    delete_data()
+    newHost = models.Host.objects.create(localIP=localNetAddr)
+    print("hostid: " + str(newHost.id))
+    newHost.save()
+    for ai in ais:
+        set_name(ai, ai)
+    start_match()
+    print(models.get_host().log)
+

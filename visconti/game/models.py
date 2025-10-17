@@ -376,7 +376,7 @@ def advance_step():
     host.save()
     state = views.data_to_dict()
     exec = futures.ThreadPoolExecutor()
-    adaptiveDelay = 1.5
+    adaptiveDelay = 0#1.5
     if (host.phase == Phase.BIDDING):
         activeAI = get_players().filter(name=host.bidder).first().ai
         if activeAI != "":
@@ -405,6 +405,7 @@ def add_line_to_log(line: str, bold:bool=False):
         host.log = "<span>" + format_bold(line) + "</span>" + host.log
     else:
         host.log = "<span>" + line + "</span>" + host.log
+    print(line)
     host.save()
 
 def format_lots(lots: str) -> str:
