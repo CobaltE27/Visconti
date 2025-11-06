@@ -48,7 +48,7 @@ class Gian(AIPlayer):
         hFields = state["host"][0]["fields"]
         groupCount = models.count_lots(hFields["group_lots"])
         myName = hFields["bidder"]
-        print(myName + "'s opinion on " + str(hFields["group_lots"]))
+        # print(myName + "'s opinion on " + str(hFields["group_lots"]))
         myFields = None
         highestCurrentBid = 0
         unfilledTotal = 0
@@ -59,7 +59,7 @@ class Gian(AIPlayer):
             if p["fields"]["name"] == myName:
                 myFields = p["fields"]
 
-        print("uaq: " + str(Gian.averageQuality(Gian.unseenLots(state))) + " ug: " + str(Gian.averageGoods(Gian.unseenLots(state))))
+        # print("uaq: " + str(Gian.averageQuality(Gian.unseenLots(state))) + " ug: " + str(Gian.averageGoods(Gian.unseenLots(state))))
         scoresIfTheyTake = {}
         noneAfterCanBid = True
         for i, p in enumerate(state["players"]):
@@ -75,7 +75,7 @@ class Gian(AIPlayer):
             stateIfPTakes["host"][0]["fields"]["group_lots"] = ""
             scoresIfTheyTake[p["fields"]["name"]] = Gian.scoreWithAvgUnseenFill(stateIfPTakes)
 
-        print(scoresIfTheyTake)
+        # print(scoresIfTheyTake)
         diffIfTheyTake = {}
         maxWorthToAfter = 0
         for p in state["players"]:
@@ -91,7 +91,7 @@ class Gian(AIPlayer):
             if Gian.isAfterMe(state, myName, pName):
                 if p["fields"]["money"] >= highestCurrentBid + 1 and 5 - models.count_lots(p["fields"]["lots"]) >= groupCount: #only count worth if taking is possible
                     maxWorthToAfter = max(maxWorthToAfter, diffIfTheyTake[pName] * (groupCount / 5))
-        print(diffIfTheyTake) 
+        # print(diffIfTheyTake) 
         if diffIfTheyTake[myName] < 0: #taking would, on average, decrease our score
             return 0
         
@@ -99,15 +99,15 @@ class Gian(AIPlayer):
         maxBid = None
         minBid = None
         if worthToMe > maxWorthToAfter: #worth less to others, don't need to bid full worth to me
-            print("more to me")
+            # print("more to me")
             maxBid = worthToMe
             minBid = max(math.ceil(maxWorthToAfter * 1.1), 1) #TODO, see if this should be min'ed with max bid, probably fine as is
         else: #worth more to others, worth some amount to block them
-            print("more to others")
+            # print("more to others")
             oppWeight = 1 / (len(state["players"]) - 1)
             maxBid = math.ceil((1 - oppWeight) * worthToMe + oppWeight * maxWorthToAfter) #should really account for opponents who have already bid to know if you should outbid them
             minBid = worthToMe
-        print("m: " + str(minBid) + ", M: " + str(maxBid))
+        # print("m: " + str(minBid) + ", M: " + str(maxBid))
         if highestCurrentBid + 1 > maxBid:
             return 0
         if hFields["chooser"] == myName or noneAfterCanBid:
@@ -129,10 +129,10 @@ class Gian(AIPlayer):
         if groupCount + 1 > slotsLeft:
             return False
         myName = myFields["name"]
-        print(str(myName) + " choosing given " + str(hFields["group_lots"]))
+        # print(str(myName) + " choosing given " + str(hFields["group_lots"]))
         
         avgDiffForThem = Gian.rewardDiffOnTake(state)
-        print("adft: " + str(avgDiffForThem))
+        # print("adft: " + str(avgDiffForThem))
         whoGroupIsGoodFor = []
         for p in state["players"]:
             if avgDiffForThem[p["fields"]["name"]] >= 0:
@@ -142,10 +142,10 @@ class Gian(AIPlayer):
         unseenAvgQuality = Gian.averageQuality(Gian.unseenLots(state))
         potentialGroupAvgQuality = (groupCount * groupAvgQuality + unseenAvgQuality) / (groupCount + 1)
         if myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) == 1: #group is only good for me
-            print("only good for me!")
+            # print("only good for me!")
             return False
         elif myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) > 1: #group is good for multiple people
-            print("good for me and others")
+            # print("good for me and others")
             slotsLeftFor = {}
             for p in state["players"]:
                 pName = p["fields"]["name"]
@@ -156,12 +156,12 @@ class Gian(AIPlayer):
                 if pSlotsLeft < slotsLeft:
                     playersWithLessSlots.append(pName)
             if len(playersWithLessSlots) == 0:
-                print("can't block any")
+                # print("can't block any")
                 return False
             
             return potentialGroupAvgQuality > unseenAvgQuality * 0.9 #arbitrary threshold, maybe improve later
         elif not myName in whoGroupIsGoodFor and len(whoGroupIsGoodFor) > 0: #group is good only for others
-            print("good for others only")
+            # print("good for others only")
             numAbleToDraw = min(3, models.count_lots(hFields["deck"]))
             allCanBeBlocked = True
             for p in state["players"]:
@@ -170,12 +170,12 @@ class Gian(AIPlayer):
                 if pName in whoGroupIsGoodFor and pSlotsLeft >= numAbleToDraw:
                     allCanBeBlocked = False
             if allCanBeBlocked:
-                print("spoiling")
+                # print("spoiling")
                 return True
 
             return potentialGroupAvgQuality < groupAvgQuality * 0.9
         else:
-            print("group is bad for all")
+            # print("group is bad for all")
             return slotsLeft >= groupCount + 1 and groupAvgQuality > unseenAvgQuality * 0.6
 
     def unseenLots(state) -> list[str]:

@@ -25,6 +25,7 @@ urlpatterns = [
     path('host/', views.host_match, name='host_match'),
     path('', views.load_match, name='load_match'),
     path('join/', views.join_match, name='join_match'),
+    path('test/', views.test_match, name='test_match'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # TODO persistent users/players leaving

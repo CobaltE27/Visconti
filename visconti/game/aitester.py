@@ -1,12 +1,11 @@
-from . import views
+import requests
+import re
 
-class Game():
-    def __init__(self, ais):
-        self.ais = ais
-    
-    def run(self):
-        views.testMatch(self.ais)
+def main():
+    players = ["gian", "errata", "randy"]
+    trials = 50
+    results = requests.get("http://10.0.0.7:8000/test/?p=" + " ".join(players) + "&tc=" + str(trials)).text
+    print(results)
 
-players = ["randy", "randy", "randy"]
-game = Game(players)
-game.run()
+if __name__ == "__main__":
+    main()

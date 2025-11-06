@@ -144,14 +144,23 @@ def data_to_dict():
         }
     return dataDict
 
-def testMatch(ais: list[str]):
-    localNetAddr = "test"
-    delete_data()
-    newHost = models.Host.objects.create(localIP=localNetAddr)
-    print("hostid: " + str(newHost.id))
-    newHost.save()
-    for ai in ais:
-        set_name(ai, ai)
-    start_match()
-    print(models.get_host().log)
+def test_match(request):
+    if request.method == "GET":
+        ais = request.GET.get("p", None)
+        trials = int(request.GET.get("tc", "1"))
+        if not ais:
+            return HttpResponse(status=400)
+        ais = ais.split()
+        winners = []
+        localNetAddr = socket.gethostbyname(socket.gethostname())
+        for c in range(0, trials):
+            delete_data()
+            newHost = models.Host.objects.create(localIP=localNetAddr)
+            print("hostid: " + str(newHost.id))
+            newHost.save()
+            for ai in ais:
+                set_name(ai, ai)
+            start_match()
+            winners.append(models.get_players().order_by("-money").first().name + " ")
+        return HttpResponse(str(winners))
 

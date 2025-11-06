@@ -391,7 +391,7 @@ def advance_step():
         activeAI = get_players().filter(name=host.chooser).first().ai
         if activeAI != "":
             wait = futures.wait([exec.submit(aiplayer.aiDictionary[activeAI].draw, state)] , 5)
-            delay = (2 if len(wait.done) > 0 else 0)
+            delay = (adaptiveDelay if len(wait.done) > 0 else 0)
             choice = (wait.done.pop().result() if len(wait.done) > 0 else host.group_lots == "")
             time.sleep(delay)
             resp = views.receive_choice(host.chooser, choice)
@@ -405,7 +405,7 @@ def add_line_to_log(line: str, bold:bool=False):
         host.log = "<span>" + format_bold(line) + "</span>" + host.log
     else:
         host.log = "<span>" + line + "</span>" + host.log
-    print(line)
+    # print(line)
     host.save()
 
 def format_lots(lots: str) -> str:
